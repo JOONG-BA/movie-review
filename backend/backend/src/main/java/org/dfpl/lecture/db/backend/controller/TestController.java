@@ -1,10 +1,11 @@
 package org.dfpl.lecture.db.backend.controller;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
-
+// 👈 추가!
 @RestController
+@RequestMapping("/api")
 public class TestController {
-    @PostMapping(value="/testData")
+    @PostMapping("/testData")
     public Map<Integer, String> testData(@RequestBody List<String> params){
         Map<Integer, String> data = new HashMap<>();
         data.put(1,"사과");
@@ -19,5 +20,4 @@ public class TestController {
 
         return data;
     }
-
 }

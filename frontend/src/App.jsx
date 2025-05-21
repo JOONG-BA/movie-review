@@ -1,18 +1,16 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+// import { useState } from 'react'
 import './App.css'
 import axios from "axios";
 
 function selectData(){
-    axios.post('http://localhost:8080/testData',["가","나","다"])
+    axios.post('/api/testData',["가","나","다"])
         .then(function (res){
             console.log(res)
         });
 }
 
 function App() {
-  const [count, setCount] = useState(0)
+  // const [count, setCount] = useState(0)
 
   return (
     <>
