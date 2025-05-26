@@ -6,7 +6,7 @@ import { IoMdSearch } from "react-icons/io";
 const Header = () => (
     <header className="bg-primary text-white flex items-center justify-center">
         <div className="w-full flex justify-between items-center py-3 container ">
-            <Link to="/" className="text-3xl tracking-tighter">🎬 MOVIELOG</Link>
+            <Link to="/" className="text-3xl tracking-tighter">MOVIELOG</Link>
             <div className="flex gap-5">
                 <form className="flex relative">
                     <Input className="bg-gray-800 rounded-xs w-70 border-0" placeholder="찾는 영화가 있으신가요?">
