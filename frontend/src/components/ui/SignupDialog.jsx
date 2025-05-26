@@ -17,14 +17,14 @@ export function SignupDialog() {
 
   return (
     <>
-      {/* ✅ 실제 화면에 안 보이는 숨겨진 버튼 (JS로 클릭됨) */}
-      <Button
-        id="open-signup-btn"
-        className="hidden"
-        onClick={() => setOpen(true)}
-      >
+      <Button id="open-login-btn" className="hidden" onClick={() => setOpen(true)}>
+        로그인
+      </Button>
+    
+      <Button id="open-signup-btn" className="hidden" onClick={() => setOpen(true)}>
         회원가입
       </Button>
+
       <Button
         className="rounded-sm border border-gray-500 hover:bg-gray-800 delay-3"
         onClick={() => setOpen(true)}
@@ -40,17 +40,44 @@ export function SignupDialog() {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="name">이름</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">이메일</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">비밀번호</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
             <Button onClick={handleSignup}>회원가입</Button>
+          </div>
+
+          <div className="text-sm text-center text-gray-500 mt-2">
+            이미 계정이 있으신가요?{" "}
+            <span
+              onClick={() => {
+                setOpen(false)
+                document.getElementById("open-login-btn")?.click()
+              }}
+              className="text-blue-500 hover:underline cursor-pointer"
+            >
+              로그인
+            </span>
           </div>
         </DialogContent>
       </Dialog>

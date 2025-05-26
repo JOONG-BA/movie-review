@@ -16,12 +16,17 @@ export function LoginDialog() {
 
   return (
     <>
+      <Button id="open-login-btn" className="hidden" onClick={() => setOpen(true)}>
+        로그인
+      </Button>
+      
       <Button
         className="rounded-sm border border-gray-500 hover:bg-gray-800 delay-3"
         onClick={() => setOpen(true)}
       >
         로그인
       </Button>
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
