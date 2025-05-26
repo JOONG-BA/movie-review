@@ -17,6 +17,7 @@ React와 Spring Boot를 활용한 영화 리뷰 플랫폼입니다.
 - Figma (디자인)
 
 > 개발 환경:
+>
 > - Node.js v18 이상
 > - npm 또는 yarn
 
@@ -30,6 +31,7 @@ React와 Spring Boot를 활용한 영화 리뷰 플랫폼입니다.
 - Gradle
 
 > 개발 환경:
+>
 > - IntelliJ IDEA
 > - JDK 17 이상
 > - MySQL 8.x / MariaDB
@@ -38,12 +40,12 @@ React와 Spring Boot를 활용한 영화 리뷰 플랫폼입니다.
 
 ## 👨‍👩‍👧‍👦 팀 구성
 
-| 파트 | 이름 (GitHub ID) |
-|------|------------------|
-| Frontend | namisu009 |
-| Frontend | NASEEL4013 |
-| Backend (팀장) | JOONG-BA |
-| Backend | jeonseohee9 |
+| 파트           | 이름 (GitHub ID) |
+| -------------- | ---------------- |
+| Frontend       | namisu009        |
+| Frontend       | NASEEL4013       |
+| Backend (팀장) | JOONG-BA         |
+| Backend        | jeonseohee9      |
 
 ---
 
@@ -56,6 +58,7 @@ movie-review-project/
 └── README.md         # 협업 문서
 
 ```
+
 ## 🌿 GitHub Flow 기반 브랜치 전략
 
 - `main`: 항상 배포 가능한 상태를 유지합니다.
@@ -67,17 +70,18 @@ movie-review-project/
 
 ### 📂 브랜치 네이밍 규칙
 
-| 접두어 | 용도 |
-|--------|------|
-| `feature/` | 새로운 기능 개발 |
-| `fix/`     | 버그 수정 |
-| `refactor/` | 코드 리팩토링 |
-| `style/`   | UI 스타일 및 포맷팅 |
-| `docs/`    | 문서 작성 및 수정 |
-| `test/`    | 테스트 코드 추가 |
-| `chore/`   | 환경설정, 빌드 스크립트 등 |
+| 접두어      | 용도                       |
+| ----------- | -------------------------- |
+| `feature/`  | 새로운 기능 개발           |
+| `fix/`      | 버그 수정                  |
+| `refactor/` | 코드 리팩토링              |
+| `style/`    | UI 스타일 및 포맷팅        |
+| `docs/`     | 문서 작성 및 수정          |
+| `test/`     | 테스트 코드 추가           |
+| `chore/`    | 환경설정, 빌드 스크립트 등 |
 
 **예시:**
+
 - `feature/login-api`
 - `fix/movie-detail-bug`
 - `refactor/user-service`
@@ -91,16 +95,15 @@ movie-review-project/
 
 커밋 메시지는 아래와 같은 형식을 사용합니다:
 
-
-| 타입 | 설명 |
-|------|------|
-| `feat` | 새로운 기능 추가 |
-| `fix` | 버그 수정 |
-| `refactor` | 코드 리팩토링 |
-| `style` | 코드 포맷팅, 세미콜론 누락 등 비즈니스 로직 변경 없는 경우 |
-| `docs` | 문서 작성 및 수정 |
-| `test` | 테스트 코드 작성 및 수정 |
-| `chore` | 빌드, 패키지 매니저 설정 등 기타 자잘한 작업 |
+| 타입       | 설명                                                       |
+| ---------- | ---------------------------------------------------------- |
+| `feat`     | 새로운 기능 추가                                           |
+| `fix`      | 버그 수정                                                  |
+| `refactor` | 코드 리팩토링                                              |
+| `style`    | 코드 포맷팅, 세미콜론 누락 등 비즈니스 로직 변경 없는 경우 |
+| `docs`     | 문서 작성 및 수정                                          |
+| `test`     | 테스트 코드 작성 및 수정                                   |
+| `chore`    | 빌드, 패키지 매니저 설정 등 기타 자잘한 작업               |
 
 #### ✅ 커밋 메시지 예시
 
