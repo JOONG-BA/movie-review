@@ -1,47 +1,46 @@
 package org.dfpl.lecture.db.backend.service;
 
-import org.dfpl.lecture.db.backend.util.KobisApiUtil;
-import org.dfpl.lecture.db.backend.util.KmdbApiUtil;
+import org.dfpl.lecture.db.backend.DTO.TmdbMovieResponse;
+import org.dfpl.lecture.db.backend.entity.MovieDB;
+import org.dfpl.lecture.db.backend.repository.MovieRepository;
 import org.dfpl.lecture.db.backend.util.TmdbApiUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class MovieService {
 
     @Autowired
-    private KobisApiUtil kobisApiUtil;
-
-    @Autowired
-    private KmdbApiUtil kmdbApiUtil;
-
-    @Autowired
     private TmdbApiUtil tmdbApiUtil;
+
+    @Autowired
+    private MovieRepository movieRepository;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    // KOBIS 박스오피스 데이터 가져오기
-    public String getBoxOfficeData(String date) {
-        String url = kobisApiUtil.getMovieListUrl(date);
-        return restTemplate.getForObject(url, String.class);
+    public List<MovieDB> fetchAndSavePopularMovies(int page) {
+        String url = tmdbApiUtil.getPopularMoviesUrl(page);
+        TmdbMovieResponse response = restTemplate.getForObject(url, TmdbMovieResponse.class);
+
+        List<MovieDB> movies = response.getResults().stream().map(result ->
+                MovieDB.builder()
+                        .id(result.getId())
+                        .title(result.getTitle())
+                        .overview(result.getOverview())
+                        .releaseDate(result.getRelease_date())
+                        .posterPath(result.getPoster_path())
+                        .voteAverage(result.getVote_average())
+                        .build()
+        ).collect(Collectors.toList());
+
+        return movieRepository.saveAll(movies);
     }
 
-    // KMDb 영화 상세정보 가져오기
-    public String getMovieDetail(String movieCode) {
-        String url = kmdbApiUtil.getMovieDetailUrl(movieCode);
-        return restTemplate.getForObject(url, String.class);
-    }
-
-    // TMDb 영화 상세정보 가져오기
-    public String getTmdbMovieDetail(String movieId) {
-        String url = tmdbApiUtil.getMovieDetailUrl(movieId);
-        return restTemplate.getForObject(url, String.class);
-    }
-
-    // TMDb 영화 검색 (예: 제목으로)
-    public String searchTmdbMovies(String query) {
-        String url = tmdbApiUtil.getMovieSearchUrl(query);
-        return restTemplate.getForObject(url, String.class);
+    public List<MovieDB> getAllMovies() {
+        return movieRepository.findAll();
     }
 }
