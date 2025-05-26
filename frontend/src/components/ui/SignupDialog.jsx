@@ -17,12 +17,21 @@ export function SignupDialog() {
 
   return (
     <>
+      {/* ✅ 실제 화면에 안 보이는 숨겨진 버튼 (JS로 클릭됨) */}
+      <Button
+        id="open-signup-btn"
+        className="hidden"
+        onClick={() => setOpen(true)}
+      >
+        회원가입
+      </Button>
       <Button
         className="rounded-sm border border-gray-500 hover:bg-gray-800 delay-3"
         onClick={() => setOpen(true)}
       >
         회원가입
       </Button>
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>

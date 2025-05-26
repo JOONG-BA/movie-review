@@ -48,6 +48,19 @@ export function LoginDialog() {
             </div>
             <Button onClick={handleLogin}>로그인</Button>
           </div>
+
+          <div className="text-sm text-center text-gray-500 mt-2">
+            계정이 없으신가요?{" "}
+            <span
+              onClick={() => {
+                setOpen(false)
+                document.getElementById("open-signup-btn")?.click()
+              }}
+              className="text-blue-500 hover:underline cursor-pointer"
+            >
+              회원가입
+            </span>
+          </div>
         </DialogContent>
       </Dialog>
     </>
