@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client"
 import { BrowserRouter, useRoutes } from "react-router-dom"
 import routes from "~react-pages"
 import App from "./App" // 여기에서 공통 레이아웃, Provider 묶음
+import "./App.css";
 
 const Router = () => {
     const element = useRoutes(routes)
