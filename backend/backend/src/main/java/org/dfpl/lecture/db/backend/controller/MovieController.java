@@ -1,7 +1,7 @@
 package org.dfpl.lecture.db.backend.controller;
 
-import org.dfpl.lecture.db.backend.DTO.MovieSearchResultDTO;
-import org.dfpl.lecture.db.backend.DTO.MovieDetailDTO;
+import org.dfpl.lecture.db.backend.tempdto.MovieSearchResultDTO;
+import org.dfpl.lecture.db.backend.tempdto.MovieDetailDTO;
 import org.dfpl.lecture.db.backend.entity.MovieDB;
 import org.dfpl.lecture.db.backend.service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
