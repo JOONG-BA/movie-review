@@ -1,10 +1,8 @@
 package org.dfpl.lecture.db.backend.service;
 
-import org.dfpl.lecture.db.backend.DTO.MovieSearchResultDTO;
+import org.dfpl.lecture.db.backend.dto.MovieSearchResultDTO;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.dfpl.lecture.db.backend.DTO.MovieDetailDTO;
-import org.dfpl.lecture.db.backend.DTO.TmdbMovieResponse;
+import org.dfpl.lecture.db.backend.dto.MovieDetailDTO;
 import org.dfpl.lecture.db.backend.entity.MovieDB;
 import org.dfpl.lecture.db.backend.repository.MovieRepository;
 import org.dfpl.lecture.db.backend.util.TmdbApiUtil;
@@ -12,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

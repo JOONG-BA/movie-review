@@ -1,5 +1,5 @@
 
-package org.dfpl.lecture.db.backend.DTO;
+package org.dfpl.lecture.db.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
