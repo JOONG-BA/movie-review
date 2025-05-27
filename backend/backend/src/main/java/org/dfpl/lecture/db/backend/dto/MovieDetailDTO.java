@@ -1,4 +1,4 @@
-package org.dfpl.lecture.db.backend.tempdto;
+package org.dfpl.lecture.db.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

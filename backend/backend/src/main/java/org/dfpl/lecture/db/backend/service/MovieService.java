@@ -1,8 +1,8 @@
 package org.dfpl.lecture.db.backend.service;
 
-import org.dfpl.lecture.db.backend.tempdto.MovieSearchResultDTO;
+import org.dfpl.lecture.db.backend.dto.MovieSearchResultDTO;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.dfpl.lecture.db.backend.tempdto.MovieDetailDTO;
+import org.dfpl.lecture.db.backend.dto.MovieDetailDTO;
 import org.dfpl.lecture.db.backend.entity.MovieDB;
 import org.dfpl.lecture.db.backend.repository.MovieRepository;
 import org.dfpl.lecture.db.backend.util.TmdbApiUtil;

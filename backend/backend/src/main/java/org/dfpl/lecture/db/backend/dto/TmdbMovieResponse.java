@@ -1,4 +1,4 @@
-package org.dfpl.lecture.db.backend.tempdto;
+package org.dfpl.lecture.db.backend.dto;
 
 import lombok.Data;
 import java.util.List;
