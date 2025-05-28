@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -24,14 +25,24 @@ public class ReviewController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> create(
             @RequestBody ReviewRequest req,
-            @AuthenticationPrincipal User user
+            Authentication authentication          // Spring Security Authentication 객체
     ) {
-        Long id = reviewService.create(user, req);
+        // 1) 토큰에서 꺼낸 사용자 이름(이메일)
+        String email = authentication.getName();
+
+        // 2) DB에서 JPA User 엔티티 조회
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException(email));
+
+        // 3) 서비스에 위임
+        Long reviewId = reviewService.create(currentUser, req);
+
         return ResponseEntity.ok(Map.of(
                 "message", "리뷰가 등록되었습니다.",
-                "reviewId", id
+                "reviewId", reviewId
         ));
     }
+
 
     @DeleteMapping("/{reviewId}")
     @PreAuthorize("hasRole('USER')")
