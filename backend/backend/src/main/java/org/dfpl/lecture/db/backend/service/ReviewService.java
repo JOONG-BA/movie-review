@@ -1,7 +1,9 @@
 package org.dfpl.lecture.db.backend.service;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.dfpl.lecture.db.backend.dto.ReviewRequest;
+import org.dfpl.lecture.db.backend.dto.ReviewResponse;
 import org.dfpl.lecture.db.backend.entity.MovieDB;
 import org.dfpl.lecture.db.backend.entity.Review;
 import org.dfpl.lecture.db.backend.entity.User;
@@ -15,9 +17,20 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
+
     private final ReviewRepository reviewRepository;
     private final MovieRepository movieRepository;
 
+    public List<ReviewResponse> findByUser(User user) {
+        return reviewRepository.findAllByUser(user)
+                .stream()
+                .map(r -> new ReviewResponse(
+                        r.getMovie().getTitle(),
+                        r.getScore(),
+                        r.getContent()
+                ))
+                .toList();
+    }
     public Long create(User user, ReviewRequest request) {
         MovieDB movie = movieRepository.findById(request.getMovieId())
                 .orElseThrow(() -> new ResponseStatusException(
