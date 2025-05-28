@@ -1,6 +1,6 @@
 package org.dfpl.lecture.db.backend.dto;
 
-public record ReviewDTO(
+public record MyReviewDTO(
         Long id,
         Long movieId,
         int score,
