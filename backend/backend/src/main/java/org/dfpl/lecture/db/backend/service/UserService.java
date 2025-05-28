@@ -19,16 +19,13 @@ public class UserService {
 
     private final ReviewRepository reviewRepository;
 
-    /**
-     * 마이페이지 정보 조회
-     */
     public MyPageDTO getMyPage(User user) {
         List<Review> all = reviewRepository.findAllByUser(user);
 
         long reviewCount = all.size();
 
         List<MyReviewDTO> recent = all.stream()
-                .sorted(Comparator.comparing(Review::getCreatedAt).reversed())  // 최신순
+                .sorted(Comparator.comparing(Review::getCreatedAt).reversed())
                 .limit(3)
                 .map(r -> new MyReviewDTO(
                         r.getId(),
@@ -43,7 +40,7 @@ public class UserService {
         dto.setEmail(user.getEmail());
         dto.setNickname(user.getNickname());
         dto.setReviewCount(reviewCount);
-        dto.setFavoriteCount(0);            // 즐겨찾기 기능 구현 이후에 바꿔주세요
+        dto.setFavoriteCount(0);
         dto.setRecentReviews(recent);
         return dto;
     }
