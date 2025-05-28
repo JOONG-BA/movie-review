@@ -5,10 +5,14 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.dfpl.lecture.db.backend.entity.User;
 import org.dfpl.lecture.db.backend.repository.UserRepository;
 import org.dfpl.lecture.db.backend.util.JwtUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -48,12 +52,18 @@ public class JwtFilter extends OncePerRequestFilter {
                 User user = userRepository.findByEmail(email).orElse(null);
 
                 if (user != null) {
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(user, null, null);
+                    List<String> roles = jwtUtil.getRolesFromToken(token);
+                    if (!roles.isEmpty()) {
+                        List<GrantedAuthority> authorities = roles.stream()
+                                .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
+                                .collect(Collectors.toList());
 
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                        var auth = new UsernamePasswordAuthenticationToken(user, null, authorities);
+                        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    }
                 }
+
             }
         }
 
