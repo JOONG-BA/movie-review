@@ -47,14 +47,13 @@ public class ReviewService {
         return saved.getId();
     }
 
-    public void delete(User user, Long reviewId) {
+    public void delete(Long reviewId, User currentUser) {
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다"));
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다"));
 
-        if (!review.getUser().getId().equals(user.getId())) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN, "권한이 없습니다");
+        if (!review.getUser().getId().equals(currentUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "삭제 권한이 없습니다");
         }
 
         reviewRepository.delete(review);

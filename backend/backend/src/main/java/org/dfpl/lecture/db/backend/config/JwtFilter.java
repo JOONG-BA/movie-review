@@ -24,7 +24,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final CustomUserDetailsService userDetailsService;  // UserDetailsService 빈 주입
+    private final CustomUserDetailsService userDetailsService;
 
     public JwtFilter(JwtUtil jwtUtil,
                      CustomUserDetailsService userDetailsService) {
@@ -61,7 +61,6 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        // ← 필수!
         filterChain.doFilter(request, response);
     }
 

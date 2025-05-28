@@ -31,13 +31,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // ─── Spring Security 6.1+ 에서 CORS 활성화 ───
                 .cors(withDefaults())
-                // ─── CSRF 끄기 ───
                 .csrf(AbstractHttpConfigurer::disable)
-                // ─── 세션 사용 안 함 ───
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // ─── URL 권한 설정 ───
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/movies/**").permitAll()
@@ -47,7 +43,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,    "/api/users/me/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
-                // ─── JWT 필터 등록 ───
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

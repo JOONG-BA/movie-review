@@ -1,7 +1,9 @@
 package org.dfpl.lecture.db.backend.service;
 
+import java.util.List;
 import org.dfpl.lecture.db.backend.entity.User;
 import org.dfpl.lecture.db.backend.repository.UserRepository;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,14 +20,16 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+    public UserDetails loadUserByUsername(String email)
+            throws UsernameNotFoundException {
+        org.dfpl.lecture.db.backend.entity.User userEntity =
+                userRepository.findByEmail(email)
+                        .orElseThrow(() -> new UsernameNotFoundException(email));
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPassword())
-                .roles("USER")    // 또는 .authorities(...)
-                .build();
+        return new org.springframework.security.core.userdetails.User(
+                userEntity.getEmail(),
+                userEntity.getPassword(),
+                List.of(new SimpleGrantedAuthority("ROLE_USER"))  // ← 여기!
+        );
     }
 }
