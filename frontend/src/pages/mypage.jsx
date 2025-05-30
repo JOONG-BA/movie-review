@@ -7,7 +7,7 @@ const MyPage = () => {
         {/* 프로필 상단 박스 */}
         <div className="flex items-center gap-6 p-6 border-b border-gray-200 relative">
           {/* 프로필 이미지 */}
-          <div className="p-4 rounded-full bg-gray-100 border border-gray-300 flex-shrink-0 w-28 h-28 overflow-hidden">
+          <div className="p-2 rounded-full bg-gray-100 border border-gray-300 flex-shrink-0 w-28 h-28 overflow-hidden">
             <img
               src="https://i.namu.wiki/i/m1WHrelfgKjmdgckinSKZApCLjRnRvMVoJFtsyJ_ahL21yTZMZxChJW0gG01uh2JzljEHYhvmzdhxCqQ_lhPv61XV-GaEVZhJvILmJpHC2s2E2sKbdrF21sznEoFwdbwFoC9CQVosHGQKurnt7Atig.webp"
               alt="프로필 이미지"
