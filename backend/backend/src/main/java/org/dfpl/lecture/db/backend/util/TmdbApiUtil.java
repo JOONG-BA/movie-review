@@ -18,7 +18,8 @@ public class TmdbApiUtil {
     }
 
     public String getMovieDetailWithCreditsUrl(long movieId) {
-        return "https://api.themoviedb.org/3/movie/" + movieId + "?api_key=" + apiKey + "&language=ko-KR&append_to_response=credits";
+        return "https://api.themoviedb.org/3/movie/" + movieId + "?api_key=" + apiKey
+                + "&language=ko-KR&append_to_response=credits";
     }
 
     public String getSearchMovieUrl(String query) {
