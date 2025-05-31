@@ -3,10 +3,11 @@ module.exports = {
   theme: {
     extend: {
       screens: {
-        sm: '720px',
-        md: '760px',
-        lg: '1100px',
-        xl: '1440px',
+        mb: { max: '639px' },
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1280px',
       },
     },
     container: false, // container 기본 비활성화

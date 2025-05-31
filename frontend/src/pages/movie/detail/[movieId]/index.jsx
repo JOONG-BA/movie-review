@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import {MovieDetailBanner} from "@/components/moive/detail/MovieDetailBanner.jsx";
 import {MovieDetailInfo} from "@/components/moive/detail/MovieDetailInfo.jsx";
 import {dummyMovies} from "@/pages/index.jsx";
+import MovieCredits from "@/components/moive/detail/MovieCredits.jsx";
+import MovieComments from "@/components/moive/detail/MovieComments.jsx";
 
 export default function MovieDetailPage() {
     const { movieId } = useParams();
@@ -26,6 +28,8 @@ export default function MovieDetailPage() {
         <>
             <MovieDetailBanner movie={dummyMovies[0]} />
             <MovieDetailInfo movie={dummyMovies[0]} />
+            <MovieCredits casts={dummyMovies[0].casts} directors={dummyMovies[0].directors}  />
+            <MovieComments />
         </>
     );
 }

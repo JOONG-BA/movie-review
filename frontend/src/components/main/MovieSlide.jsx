@@ -3,49 +3,8 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import {IoMdStar} from "react-icons/io";
 import {Link} from "react-router-dom";
-import {
-    MdArrowBackIos,
-    MdArrowForwardIos,
-    MdOutlineArrowForwardIos,
-    MdOutlineKeyboardArrowLeft,
-    MdOutlineKeyboardArrowRight
-} from "react-icons/md";
-import {dummyMovies} from "@/pages/index.jsx";
-
-const NextArrow = (props) => {
-    const { className, style, onClick } = props;
-    return (
-        <div
-            className={`
-                absolute z-10 !right-0 translate-x-1/3 top-1/2 -translate-y-12
-                cursor-pointer text-xl text-black p-1 rounded-full bg-white border-gray-200 border
-                text-gray-500 hover:text-gray-900 hover:bg-gray-50
-                ${className?.includes("slick-disabled") ? "hidden" : ""}
-            `}
-            onClick={onClick}
-        >
-            <MdOutlineKeyboardArrowRight size={22} />
-        </div>
-    );
-};
-
-const PrevArrow = (props) => {
-    const { className, style, onClick } = props;
-    return (
-        <div
-            className={`
-                absolute z-10 !left-0 -translate-x-1/3 top-1/2 -translate-y-12
-                cursor-pointer text-xl text-black p-1 rounded-full bg-white border-gray-200 border
-                text-gray-500 hover:text-gray-900 hover:bg-gray-50
-                ${className?.includes("slick-disabled") ? "hidden" : ""}
-            `}
-            onClick={onClick}
-        >
-            <MdOutlineKeyboardArrowLeft size={22} />
-        </div>
-    );
-};
-
+import {NextArrow} from "@/components/slider/PrevArrow.jsx";
+import {PrevArrow} from "@/components/slider/NextArrow.jsx";
 
 let settings = {
     dots: false,
