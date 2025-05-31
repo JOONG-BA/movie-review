@@ -1,5 +1,9 @@
 import {MovieSlide} from "@/components/main/MovieSlide.jsx";
 
+const galleryImages = Array(10).fill(
+    "https://image.tmdb.org/t/p/original/zD5v1E4joAzFvmAEytt7fM3ivyT.jpg"
+);
+
 export const dummyMovies = [
     {
         id: 101,
@@ -125,6 +129,7 @@ export const dummyMovies = [
                 profilePath: ''
             },
         ],
+        gallery: galleryImages,
         category: 'movie'
     },
     {
@@ -200,7 +205,7 @@ export const dummyMovies = [
 
 export default function Home() {
     return (
-        <div className="max-w-[1320px] pt-10 m-auto">
+        <div className="max-w-[1320px] w-full pt-10 m-auto">
             <MovieSlide title="최신 리뷰" movies={dummyMovies} />
             <MovieSlide title="평점 높은 영화" movies={dummyMovies} />
             <MovieSlide title="액션 영화" movies={dummyMovies} />

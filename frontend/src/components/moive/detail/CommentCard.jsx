@@ -8,7 +8,7 @@ export default function CommentCard({ comment, maxLength }) {
             : comment.content;
 
     return (
-        <div className="flex-none w-full p-5 bg-gray-50 rounded shadow-sm text-sm flex flex-col gap-4">
+        <div className="flex-none w-full p-5 bg-gray-100 rounded shadow-sm text-sm flex flex-col gap-4">
             {/* 작성자 + 별점 */}
             <div className="flex pb-2 border-b justify-between items-center">
                 <div className="flex items-center gap-3">
