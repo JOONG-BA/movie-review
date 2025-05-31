@@ -1,5 +1,6 @@
 package org.dfpl.lecture.db.backend.controller;
 
+import java.util.List;
 import java.util.Map;
 import javax.security.sasl.AuthenticationException;
 import org.dfpl.lecture.db.backend.dto.*;
@@ -53,8 +54,10 @@ public class AuthController {
         );
 
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
-        String token = jwtUtil.generateToken(user.getEmail());
-
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                List.of("USER")
+        );
         return ResponseEntity.ok(Map.of("token", token));
     }
 

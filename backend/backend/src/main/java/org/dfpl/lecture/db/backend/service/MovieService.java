@@ -1,171 +1,166 @@
 package org.dfpl.lecture.db.backend.service;
 
-import org.dfpl.lecture.db.backend.dto.MovieSearchResultDTO;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.dfpl.lecture.db.backend.dto.MovieDetailDTO;
+import lombok.RequiredArgsConstructor;
+import org.dfpl.lecture.db.backend.dto.*;
 import org.dfpl.lecture.db.backend.entity.MovieDB;
 import org.dfpl.lecture.db.backend.repository.MovieRepository;
 import org.dfpl.lecture.db.backend.util.TmdbApiUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 import java.util.stream.StreamSupport;
 
 @Service
+@RequiredArgsConstructor
 public class MovieService {
 
-    @Autowired
-    private TmdbApiUtil tmdbApiUtil;
+    private final MovieRepository movieRepository;
+    private final TmdbApiUtil tmdb;
+    private final Environment env;   // 모든 이미지 base-url 접근용
 
-    @Autowired
-    private MovieRepository movieRepository;
-
-    private final RestTemplate restTemplate = new RestTemplate();
-
-    public MovieDetailDTO getMovieDetail(Long id) {
-        return movieRepository.findById(id)
-                .map(m -> MovieDetailDTO.builder()
-                        .id(m.getId())
-                        .title(m.getTitle())
-                        .overview(m.getOverview())
-                        .releaseDate(m.getReleaseDate())
-                        .posterPath("https://image.tmdb.org/t/p/w500" + m.getPosterPath()) // 전체 URL 반환
-                        .voteAverage(m.getVoteAverage())
-                        .genres(m.getGenres())
-                        .productionCountries(m.getProductionCountries())
-                        .cast(m.getCast())
-                        .crew(m.getCrew())
-                        .category(m.getCategory())
-                        .build())
-                .orElseThrow(() -> new RuntimeException("해당 ID의 영화를 찾을 수 없습니다."));
+    /* ------------------------------------------------------------------ */
+    /* 내부 헬퍼: TMDb path → 완전 URL                                     */
+    /* ------------------------------------------------------------------ */
+    private String img(String path, String sizeKey) {
+        if (path == null || path.isBlank()) return null;
+        String key = "tmdb.image.base-url." + (sizeKey == null ? "w500" : sizeKey);
+        String base = env.getProperty(key, "https://image.tmdb.org/t/p/w500");
+        return base + path;
     }
 
+    /* ------------------------------------------------------------------ */
+    /* 검색 (DB → TMDb 폴백)                                              */
+    /* ------------------------------------------------------------------ */
+    @Transactional(readOnly = true)
+    public List<MovieSearchResultDTO> searchMovies(String keyword) {
 
-    public List<MovieDB> fetchAndSavePopularMovies(int page) {
-        String url = tmdbApiUtil.getPopularMoviesUrl(page);
-        JsonNode resultList = restTemplate.getForObject(url, JsonNode.class).path("results");
+        String norm = keyword.replaceAll("\\s+", "")
+                .toLowerCase(Locale.ROOT);
 
-        List<MovieDB> saved = new ArrayList<>();
-        for (JsonNode movieSummary : resultList) {
-            long movieId = movieSummary.path("id").asLong();
-
-            if (movieRepository.existsById(movieId)) {
-                System.out.println("⚠️ 이미 존재하는 영화, 건너뜀: id=" + movieId);
-                continue;
-            }
-
-            try {
-                MovieDB fullMovie = fetchFullMovieDetail(movieId);
-                if (fullMovie != null) saved.add(fullMovie);
-            } catch (Exception e) {
-                System.err.println("❌ 상세정보 로딩 실패 (id=" + movieId + "): " + e.getMessage());
-            }
-
-            try {
-                Thread.sleep(250); // API 호출 제한 고려
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-            }
+        // 1) 캐시(DB) 우선
+        List<MovieDB> cached = movieRepository.searchByRelevance(norm);
+        if (!cached.isEmpty()) {
+            return cached.stream()
+                    .map(MovieSearchResultDTO::fromEntity)
+                    .peek(dto -> dto.setPosterPath(img(dto.getPosterPath(), "w342")))
+                    .toList();
         }
 
-        return movieRepository.saveAll(saved);
+        // 2) TMDb 폴백
+        List<MovieSearchResultDTO> fromTmdb = tmdb.searchMovies(keyword)
+                .stream()
+                .peek(dto -> dto.setPosterPath(img(dto.getPosterPath(), "w342")))
+                .toList();
+        saveIfAbsent(fromTmdb);
+        return fromTmdb;
     }
 
-
-
-    public List<MovieDB> getAllMovies() {
-        return movieRepository.findAll();
+    /* ------------------------------------------------------------------ */
+    /* 인기 영화 페이지 저장                                              */
+    /* ------------------------------------------------------------------ */
+    @Transactional
+    public List<MovieDB> fetchAndSavePopularMovies(int page) {
+        List<MovieSearchResultDTO> pageList = tmdb.fetchPopularMovies(page);
+        return pageList.stream()
+                .filter(dto -> !movieRepository.existsByTmdbId(dto.getTmdbId()))
+                .map(MovieDB::fromSearchDTO)
+                .map(movieRepository::save)
+                .toList();
     }
 
-    public MovieDB fetchFullMovieDetail(long movieId) {
-        String url = tmdbApiUtil.getMovieDetailWithCreditsUrl(movieId);
-        JsonNode movie = restTemplate.getForObject(url, JsonNode.class);
-
-        String genres = StreamSupport.stream(movie.path("genres").spliterator(), false)
-                .map(n -> n.path("name").asText())
-                .collect(Collectors.joining(", "));
-
-        String countries = StreamSupport.stream(movie.path("production_countries").spliterator(), false)
-                .map(n -> n.path("name").asText())
-                .collect(Collectors.joining(", "));
-
-        String cast = StreamSupport.stream(movie.path("credits").path("cast").spliterator(), false)
-                .limit(5)
-                .map(n -> n.path("name").asText())
-                .collect(Collectors.joining(", "));
-
-        String crew = StreamSupport.stream(movie.path("credits").path("crew").spliterator(), false)
-                .filter(n -> n.path("job").asText().equals("Director"))
-                .map(n -> n.path("name").asText())
-                .distinct()
-                .collect(Collectors.joining(", "));
-
-        return MovieDB.builder()
-                .id(movieId)
-                .title(movie.path("title").asText())
-                .overview(movie.path("overview").asText())
-                .releaseDate(movie.path("release_date").asText())
-                .posterPath(movie.path("poster_path").asText())
-                .voteAverage(movie.path("vote_average").asDouble())
-                .genres(genres)
-                .productionCountries(countries)
-                .cast(cast)
-                .crew(crew)
-                .category("movie")
-                .build();
-    }
-    public List<MovieDB> fetchAndSavePopularMoviesRange(int startPage, int endPage) {
+    @Transactional
+    public List<MovieDB> fetchAndSavePopularMovies(int fromPage, int toPage) {
         List<MovieDB> all = new ArrayList<>();
-        for (int i = startPage; i <= endPage; i++) {
-            try {
-                List<MovieDB> pageResult = fetchAndSavePopularMovies(i);
-                all.addAll(pageResult);
-                System.out.println("✅ 저장 완료: page " + i);
-                Thread.sleep(250); // TMDB 제한 고려
-            } catch (Exception e) {
-                System.err.println("❌ 에러 발생 (page " + i + "): " + e.getMessage());
-            }
+        for (int p = fromPage; p <= toPage; p++) {
+            all.addAll(fetchAndSavePopularMovies(p));
         }
         return all;
     }
 
+    /* ------------------------------------------------------------------ */
+    /* 상세 정보                                                           */
+    /* ------------------------------------------------------------------ */
+    @Transactional(readOnly = true)
+    public MovieDetailDTO getDetail(Long movieId, Locale locale) {
 
-    public List<MovieSearchResultDTO> searchMoviesByTitle(String query) {
-        List<MovieSearchResultDTO> results = new ArrayList<>();
-        List<MovieDB> fromDb = movieRepository.findByTitleContainingIgnoreCase(query);
-        for (MovieDB m : fromDb) {
-            results.add(MovieSearchResultDTO.builder()
-                    .id(m.getId())
-                    .title(m.getTitle())
-                    .releaseDate(m.getReleaseDate())
-                    .posterPath("https://image.tmdb.org/t/p/w500" + m.getPosterPath())
-                    .productionCountries(m.getProductionCountries())
-                    .category(m.getCategory())
-                    .build());
-        }
+        MovieDB base = movieRepository.findById(movieId).orElse(null);
+        JsonNode bundle = tmdb.fetchMovieBundle(movieId, locale);
 
-        String url = tmdbApiUtil.getSearchMovieUrl(query);
-        JsonNode response = restTemplate.getForObject(url, JsonNode.class);
-        JsonNode resultsNode = response.path("results");
+        /* 장르 */
+        List<String> genres = new ArrayList<>();
+        bundle.path("genres").forEach(g -> genres.add(g.path("name").asText()));
 
-        for (JsonNode node : resultsNode) {
-            Long id = node.path("id").asLong();
-            if (fromDb.stream().anyMatch(m -> m.getId().equals(id))) continue;
+        /* CAST 10명 */
+        List<CastDTO> casts = StreamSupport.stream(bundle.path("credits").path("cast").spliterator(), false)
+                .limit(10)
+                .map(c -> CastDTO.builder()
+                        .id(c.path("id").asLong())
+                        .name(c.path("name").asText())
+                        .role(c.path("character").asText())
+                        .profilePath(img(c.path("profile_path").asText(null), "w185"))
+                        .build())
+                .toList();
 
-            results.add(MovieSearchResultDTO.builder()
-                    .id(id)
-                    .title(node.path("title").asText())
-                    .releaseDate(node.path("release_date").asText())
-                    .posterPath("https://image.tmdb.org/t/p/w500" + node.path("poster_path").asText())
-                    .productionCountries(node.path("original_language").asText())
-                    .category("movie")
-                    .build());
-        }
+        /* 감독 */
+        List<CastDTO> directors = StreamSupport.stream(bundle.path("credits").path("crew").spliterator(), false)
+                .filter(crew -> "Director".equals(crew.path("job").asText()))
+                .map(d -> CastDTO.builder()
+                        .id(d.path("id").asLong())
+                        .name(d.path("name").asText())
+                        .role("Director")
+                        .profilePath(img(d.path("profile_path").asText(null), "w185"))
+                        .build())
+                .toList();
 
-        return results;
+        /* 갤러리 10장 (원본 사이즈) */
+        List<ImageDTO> gallery = StreamSupport.stream(bundle.path("images").path("backdrops").spliterator(), false)
+                .limit(10)
+                .map(imgNode -> ImageDTO.builder()
+                        .filePath(img(imgNode.path("file_path").asText(), "original"))
+                        .width(imgNode.path("width").asInt())
+                        .height(imgNode.path("height").asInt())
+                        .build())
+                .toList();
+
+        /* 예고편 */
+        List<VideoDTO> videos = StreamSupport.stream(bundle.path("videos").path("results").spliterator(), false)
+                .filter(v -> "Trailer".equals(v.path("type").asText()))
+                .map(v -> VideoDTO.builder()
+                        .key(v.path("key").asText())
+                        .site(v.path("site").asText())
+                        .name(v.path("name").asText())
+                        .type(v.path("type").asText())
+                        .build())
+                .toList();
+
+        return MovieDetailDTO.builder()
+                .id(movieId)
+                .title(Optional.ofNullable(base).map(MovieDB::getTitle)
+                        .orElse(bundle.path("title").asText()))
+                .overview(bundle.path("overview").asText())
+                .releaseDate(bundle.path("release_date").asText())
+                .runtime(bundle.hasNonNull("runtime") ? bundle.path("runtime").asInt() : null)
+                .genres(genres)
+                .posterPath(img(bundle.path("poster_path").asText(null), "w500"))
+                .backdropPath(img(bundle.path("backdrop_path").asText(null), "w780"))
+                .casts(casts)
+                .directors(directors)
+                .gallery(gallery)
+                .videos(videos)
+                .build();
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* 내부 util                                                           */
+    /* ------------------------------------------------------------------ */
+    private void saveIfAbsent(List<MovieSearchResultDTO> dtoList) {
+        dtoList.stream()
+                .filter(dto -> !movieRepository.existsByTmdbId(dto.getTmdbId()))
+                .map(MovieDB::fromSearchDTO)
+                .forEach(movieRepository::save);
     }
 }

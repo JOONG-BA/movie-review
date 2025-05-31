@@ -1,7 +1,12 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @custom-variant dark (&:is(.dark *));
+
+:root {
+  --container-8xl: 82.5rem;
+}
 
 #root {
   margin: 0 auto;
@@ -43,6 +48,7 @@
 .read-the-docs {
   color: #888;
 }
+
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -151,11 +157,41 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+@layer utilities {
+  .container {
+    width: 100%;
+    max-width: 1320px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 15px;
+    padding-right: 15px;
   }
-  body {
-    @apply bg-background text-foreground;
+
+  @media (min-width: 720px) {
+    .container {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+  }
+
+  @media (min-width: 760px) {
+    .container {
+      padding-left: 3.5%;
+      padding-right: 3.5%;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .container {
+      padding-left: 60px;
+      padding-right: 60px;
+    }
+  }
+
+  @media (min-width: 1440px) {
+    .container {
+      padding-left: 0px;
+      padding-right: 0px;
+    }
   }
 }

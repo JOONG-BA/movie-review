@@ -10,6 +10,7 @@ import {
     MdOutlineKeyboardArrowLeft,
     MdOutlineKeyboardArrowRight
 } from "react-icons/md";
+import {dummyMovies} from "@/pages/index.jsx";
 
 const NextArrow = (props) => {
     const { className, style, onClick } = props;
@@ -76,14 +77,13 @@ let settings = {
             settings: {
                 slidesToShow: 3,
                 slidesToScroll: 3,
-                initialSlide: 3
             }
         },
         {
             breakpoint: 768,
             settings: {
-                slidesToShow: 2,
-                slidesToScroll: 2
+                slidesToShow: 3.2,
+                slidesToScroll: 3.2
             }
         }
     ]
@@ -91,27 +91,26 @@ let settings = {
 
 export const MovieSlide = ({ title, movies }) => {
     return (
-
-        <section className="my-8 text-left px-5">
-            <h2 className="text-2xl font-semibold mb-4 px-2">{title}</h2>
+        <section className="my-8 container text-left overflow-hidden">
+            <h2 className="text-xl sm:text-2xl font-semibold mb-4 ">{title}</h2>
             <div className="slider-container">
                 <Slider className="relative " {...settings}>
                     {movies.map((movie) => (
-                        <Link to={""} key={movie.id} className="px-2 cursor-pointer">
+                        <Link to={`/movie/detail/${movie.id}`} key={movie.id} className="pr-1 sm:pr-2 cursor-pointer">
                             <div className="bg-gray-400 rounded-sm border border-gray-200 overflow-hidden">
-                                <img src={movie.posterUrl} alt={movie.title}/>
+                                <img src={movie.posterPath} alt={movie.title}/>
                             </div>
                             <div className="grid gap-y-1">
-                                <p className="mt-2 text-md font-semibold">{movie.title}</p>
-                                <div className="text-sm font-medium">
+                                <p className="mt-2 text-base sm:text-lg font-semibold">{movie.title}</p>
+                                <div className="text-sm hidden sm:block font-medium">
                                     {movie.releaseYear}
                                     <p className="inline mx-1">
-                                        {movie.genre.map((g, idx) => (
+                                        {movie.genres.map((g, idx) => (
                                             <span key={idx} className="mr-1">· {g}</span>
                                         ))}
                                     </p>
                                 </div>
-                                <p className="flex items-center text-sm text-gray-500">
+                                <p className="flex items-center text-xs sm:text-sm text-gray-500">
                                     평균 <IoMdStar className="mx-1" /> {movie.rating}
                                 </p>
                             </div>

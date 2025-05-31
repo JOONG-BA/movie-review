@@ -1,20 +1,24 @@
-
 package org.dfpl.lecture.db.backend.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @Builder
+@AllArgsConstructor @NoArgsConstructor
 public class MovieSearchResultDTO {
-    private Long id;
+
+    private Long   tmdbId;
     private String title;
-    private String releaseDate;
     private String posterPath;
-    private String productionCountries;
-    private String category;
+    private String releaseDate;
+    private Double popularity;
+
+    public static MovieSearchResultDTO fromEntity(org.dfpl.lecture.db.backend.entity.MovieDB e) {
+        return MovieSearchResultDTO.builder()
+                .tmdbId(e.getTmdbId())
+                .title(e.getTitle())
+                .posterPath(e.getPosterPath())
+                .releaseDate(e.getReleaseDate())
+                .popularity(e.getPopularity())
+                .build();
+    }
 }
