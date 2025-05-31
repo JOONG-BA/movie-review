@@ -1,50 +1,54 @@
 package org.dfpl.lecture.db.backend.controller;
 
-import org.dfpl.lecture.db.backend.dto.MovieSearchResultDTO;
+import lombok.RequiredArgsConstructor;
 import org.dfpl.lecture.db.backend.dto.MovieDetailDTO;
+import org.dfpl.lecture.db.backend.dto.MovieSearchResultDTO;
 import org.dfpl.lecture.db.backend.entity.MovieDB;
 import org.dfpl.lecture.db.backend.service.MovieService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Locale;
 
 @RestController
 @RequestMapping("/api/movies")
+@RequiredArgsConstructor
 public class MovieController {
 
-    @Autowired
-    private MovieService movieService;
+    private final MovieService movieService;
 
-    // 단일 페이지 가져오기
+    /* 인기 영화 페이지 수동 페치 (관리용) */
     @PostMapping("/fetch")
-    public List<MovieDB> fetchAndSave(@RequestParam(defaultValue = "1") int page) {
-        return movieService.fetchAndSavePopularMovies(page);
+    public ResponseEntity<List<MovieDB>> fetchAndSave(
+            @RequestParam(defaultValue = "1") int page
+    ) {
+        return ResponseEntity.ok(movieService.fetchAndSavePopularMovies(page));
     }
 
-    // 범위 페이지 가져오기
+    /* 페이지 범위 페치 */
     @PostMapping("/fetch-range")
-    public List<MovieDB> fetchRange(
-            @RequestParam(defaultValue = "1") int start,
-            @RequestParam(defaultValue = "10") int end) {
-        return movieService.fetchAndSavePopularMoviesRange(start, end);
+    public ResponseEntity<List<MovieDB>> fetchRange(
+            @RequestParam(defaultValue = "1") int from,
+            @RequestParam(defaultValue = "2") int to
+    ) {
+        return ResponseEntity.ok(movieService.fetchAndSavePopularMovies(from, to));
     }
 
-    // 전체 목록 반환
-    @GetMapping
-    public List<MovieDB> getAll() {
-        return movieService.getAllMovies();
-    }
-
-    // 상세 조회
-    @GetMapping("/{id}")
-    public MovieDetailDTO getMovieDetail(@PathVariable Long id) {
-        return movieService.getMovieDetail(id);
-    }
-
-    // 검색
+    /* 검색 */
     @GetMapping("/search")
-    public List<MovieSearchResultDTO> searchMovies(@RequestParam String query) {
-        return movieService.searchMoviesByTitle(query);
+    public ResponseEntity<List<MovieSearchResultDTO>> search(
+            @RequestParam String query
+    ) {
+        return ResponseEntity.ok(movieService.searchMovies(query));
+    }
+
+    /* 상세 (러닝타임·감독·배우·갤러리·예고편 포함) */
+    @GetMapping("/{id}")
+    public ResponseEntity<MovieDetailDTO> detail(
+            @PathVariable Long id,
+            @RequestHeader(name = "Accept-Language", defaultValue = "ko-KR") Locale locale
+    ) {
+        return ResponseEntity.ok(movieService.getDetail(id, locale));
     }
 }
