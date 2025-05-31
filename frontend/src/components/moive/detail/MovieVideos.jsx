@@ -1,9 +1,9 @@
 import {useEffect, useRef, useState} from "react";
-import Slider from "react-slick";
 import {NextArrow} from "@/components/slider/PrevArrow.jsx";
 import {PrevArrow} from "@/components/slider/NextArrow.jsx";
+import Slider from "react-slick";
 
-export default function MovieGallery({ images = [] }) {
+export default function MovieVideos({ videos = [] }) {
     const [selectedImage, setSelectedImage] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
 
@@ -50,34 +50,29 @@ export default function MovieGallery({ images = [] }) {
 
     return (
         <div className="mt-8 container">
-            <h2 className="text-xl text-left font-bold my-4">갤러리</h2>
+            <h2 className="text-xl text-left font-bold my-4">동영상</h2>
             <Slider ref={sliderRef}  {...settings} className="relative" >
-                {images.map((src, idx) => (
+                {videos.map((video, idx) => (
                     <div className="px-1">
-                        <img
+                        <a
                             key={idx}
-                            src={src}
-                            alt={`gallery-${idx}`}
-                            onClick={() => handleImageClick(src)}
-                            className="cursor-pointer object-cover aspect-[3/2] rounded"
-                        />
+                            href={`https://www.youtube.com/watch?v=${video.key}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block relative rounded overflow-hidden"
+                        >
+                            <img
+                                src={`https://img.youtube.com/vi/${video.key}/0.jpg`}
+                                alt={video.name}
+                                className="aspect-video object-cover w-full rounded hover:opacity-80"
+                            />
+                            <div className="mt-2 text-sm  text-left text-gray-800 font-medium truncate">
+                                {video.name}
+                            </div>
+                        </a>
                     </div>
                 ))}
             </Slider>
-
-            {selectedImage && (
-                <div
-                    className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center focus:border-0"
-                    onClick={() => setSelectedImage(null)}
-                >
-                    <img
-                        src={selectedImage}
-                        alt="Selected"
-                        className="max-w-[90vw] max-h-[90vh] rounded shadow-lg"
-                        onClick={(e) => e.stopPropagation()} // 이미지 클릭 시 닫히지 않도록
-                    />
-                </div>
-            )}
         </div>
     );
 }

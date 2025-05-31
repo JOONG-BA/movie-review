@@ -52,7 +52,7 @@ export default function MovieComments() {
 
     return (
         <div className="mt-8 container">
-            <div className="flex items-end mb-4">
+            <div className="flex items-end my-4">
                 <h2 className="flex-1 text-xl text-left font-bold">코멘트</h2>
                 <Link href="/comments" className="text-xs text-gray-500">
                     더보기

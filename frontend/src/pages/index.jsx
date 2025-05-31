@@ -130,7 +130,28 @@ export const dummyMovies = [
             },
         ],
         gallery: galleryImages,
-        category: 'movie'
+        category: 'movie',
+        videos:[
+            {
+                key: "1mTjfMFyPi8",
+                site: "YouTube",
+                name: "Spider-Mans Trailer",
+                type: "Trailer"
+            },
+            {
+                key: "1mTjfMFyPi8",
+                site: "YouTube",
+                name: "Spider-Mans Trailer",
+                type: "Trailer"
+            },
+            {
+                key: "1mTjfMFyPi8",
+                site: "YouTube",
+                name: "Spider-Mans Trailer",
+                type: "Trailer"
+            },
+        ],
+
     },
     {
         id: 102,

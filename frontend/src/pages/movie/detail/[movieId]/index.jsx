@@ -6,6 +6,7 @@ import {dummyMovies} from "@/pages/index.jsx";
 import MovieCredits from "@/components/moive/detail/MovieCredits.jsx";
 import MovieComments from "@/components/moive/detail/MovieComments.jsx";
 import MovieGallery from "@/components/moive/detail/MovieGallery.jsx";
+import MovieVideos from "@/components/moive/detail/MovieVideos.jsx";
 
 export default function MovieDetailPage() {
     const { movieId } = useParams();
@@ -26,12 +27,13 @@ export default function MovieDetailPage() {
 
 
     return (
-        <>
+        <div className="mb-10">
             <MovieDetailBanner movie={dummyMovies[0]} />
             <MovieDetailInfo movie={dummyMovies[0]} />
             <MovieCredits casts={dummyMovies[0].casts} directors={dummyMovies[0].directors}  />
             <MovieComments />
             <MovieGallery images={dummyMovies[0].gallery} />
-        </>
+            <MovieVideos videos={dummyMovies[0].videos} />
+        </div>
     );
 }

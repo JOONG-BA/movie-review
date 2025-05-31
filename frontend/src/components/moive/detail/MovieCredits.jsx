@@ -38,7 +38,7 @@ export default function CastAndCrew({ casts = [], directors = [] }) {
 
     return (
         <div className="mt-8 container">
-            <h2 className="text-xl text-left font-bold mb-4">출연 및 제작진</h2>
+            <h2 className="text-xl text-left font-bold my-4">출연 및 제작진</h2>
             <Slider className="relative" {...settings}>
                 {grouped.map((chunk, idx) => (
                     <div key={idx}>
