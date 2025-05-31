@@ -7,11 +7,10 @@ import { SignupDialog } from "@/components/ui/SignupDialog.jsx"
 import { useState } from "react"
 
 const Header = () => {
-  //여기에서 로그인 했는지 안했는지 판별
-  const [isLoggedIn, setIsLoggedIn] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   return (
-    <header className="fixed w-full z-50 bg-gray-900 text-white flex items-center justify-center overflow-hidden">
+    <header className="fixed w-full z-50 bg-gray-900 text-white flex items-center justify-center overflow-hidden top-0">
       <div className="w-full flex justify-between items-center py-3 container">
 
         <Link to="/" className="text-xs sm:text-3xl tracking-tighter">MOVIELOG</Link>
