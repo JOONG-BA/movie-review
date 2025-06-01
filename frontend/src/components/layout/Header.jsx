@@ -25,14 +25,13 @@ const Header = () => {
           <nav className="flex items-center gap-3">
             {isLoggedIn ? (
               <>
-                <Link to="/mypage" className="w-9 h-9 rounded-full overflow-hidden border border-white">
-                  <img
-                    src="https://i.namu.wiki/i/m1WHrelfgKjmdgckinSKZApCLjRnRvMVoJFtsyJ_ahL21yTZMZxChJW0gG01uh2JzljEHYhvmzdhxCqQ_lhPv61XV-GaEVZhJvILmJpHC2s2E2sKbdrF21sznEoFwdbwFoC9CQVosHGQKurnt7Atig.webp"
-                    alt="profile"
-                    className="object-cover w-full h-full"
-                  />
-                </Link>
-
+                <div className="w-9 h-9 rounded-full overflow-hidden border border-white">
+                 <img
+                  src="https://i.namu.wiki/i/m1WHrelfgKjmdgckinSKZApCLjRnRvMVoJFtsyJ_ahL21yTZMZxChJW0gG01uh2JzljEHYhvmzdhxCqQ_lhPv61XV-GaEVZhJvILmJpHC2s2E2sKbdrF21sznEoFwdbwFoC9CQVosHGQKurnt7Atig.webp"
+                  alt="profile"
+                  className="object-cover w-full h-full"
+                 />
+</div>
                 <Link to="/mypage">
                   <Button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 text-sm rounded-md">
                     마이페이지
