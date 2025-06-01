@@ -50,15 +50,7 @@ public class UserController {
                 .orElseThrow(() -> new UsernameNotFoundException("사용자 없음: " + auth.getName()));
     }
 
-    @GetMapping("/reviews")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<List<MyReviewDTO>> getMyReviews(Authentication auth) {
-        User currentUser = getCurrentUser(auth);
-        List<MyReviewDTO> reviews = userService.getMyReviews(currentUser);
-        return ResponseEntity.ok(reviews);
-    }
-
-    @GetMapping
+    @GetMapping("/me")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<MyPageDTO> myPage(Authentication auth) {
         User currentUser = getCurrentUser(auth);

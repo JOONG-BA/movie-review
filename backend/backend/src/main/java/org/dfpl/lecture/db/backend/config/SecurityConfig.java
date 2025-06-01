@@ -26,20 +26,22 @@ public class SecurityConfig {
         this.jwtFilter = jwtFilter;
     }
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> {})
+                .cors(cors -> {
+                })
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET,  "/api/movies/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/movies/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/movies/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,   "/api/reviews/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/api/reviews/**").hasRole("USER")
                         .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.GET,    "/api/users/me/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.GET, "/api/users/me").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/users/me",
+                                "/api/users/me/**")
+                        .hasRole("USER")
                         .anyRequest().authenticated()
                 )
 
@@ -55,7 +57,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration config
+    ) throws Exception {
         return config.getAuthenticationManager();
     }
 }
