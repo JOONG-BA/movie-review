@@ -12,7 +12,6 @@ const Header = () => {
   return (
     <header className="fixed w-full z-50 bg-gray-900 text-white flex items-center justify-center overflow-hidden top-0">
       <div className="w-full flex justify-between items-center py-3 container">
-
         <Link to="/" className="text-xs sm:text-3xl tracking-tighter">MOVIELOG</Link>
 
         <div className="flex gap-5">
@@ -29,19 +28,16 @@ const Header = () => {
                 <Link to="/mypage" className="w-9 h-9 rounded-full overflow-hidden border border-white">
                   <img
                     src="https://i.namu.wiki/i/m1WHrelfgKjmdgckinSKZApCLjRnRvMVoJFtsyJ_ahL21yTZMZxChJW0gG01uh2JzljEHYhvmzdhxCqQ_lhPv61XV-GaEVZhJvILmJpHC2s2E2sKbdrF21sznEoFwdbwFoC9CQVosHGQKurnt7Atig.webp"
-                    alt="프로필"
-                    className="w-full h-full object-cover"
+                    alt="profile"
+                    className="object-cover w-full h-full"
                   />
                 </Link>
-                <Link to="/mypage" className="hover:underline text-white text-sm">
-                  마이페이지
+
+                <Link to="/mypage">
+                  <Button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 text-sm rounded-md">
+                    마이페이지
+                  </Button>
                 </Link>
-                <button
-                  className="bg-white text-primary px-3 py-1 text-sm rounded hover:bg-gray-200"
-                  onClick={() => setIsLoggedIn(false)}
-                >
-                  로그아웃
-                </button>
               </>
             ) : (
               <>
