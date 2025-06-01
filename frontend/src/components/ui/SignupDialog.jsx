@@ -20,7 +20,7 @@ export function SignupDialog() {
       <Button id="open-login-btn" className="hidden" onClick={() => setOpen(true)}>
         로그인
       </Button>
-    
+
       <Button id="open-signup-btn" className="hidden" onClick={() => setOpen(true)}>
         회원가입
       </Button>
@@ -33,17 +33,19 @@ export function SignupDialog() {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="bg-gray-900/95 text-white rounded-xl shadow-2xl backdrop-blur-md px-8 py-6 max-w-md">
           <DialogHeader>
-            <DialogTitle>회원가입</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-center">회원가입</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+
+          <div className="grid gap-5 py-4">
             <div className="grid gap-2">
               <Label htmlFor="name">이름</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                className="bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="grid gap-2">
@@ -53,6 +55,7 @@ export function SignupDialog() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="grid gap-2">
@@ -62,19 +65,20 @@ export function SignupDialog() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <Button onClick={handleSignup}>회원가입</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700 transition-colors">회원가입</Button>
           </div>
 
-          <div className="text-sm text-center text-gray-500 mt-2">
+          <div className="text-sm text-center text-gray-400 mt-2">
             이미 계정이 있으신가요?{" "}
             <span
               onClick={() => {
                 setOpen(false)
                 document.getElementById("open-login-btn")?.click()
               }}
-              className="text-blue-500 hover:underline cursor-pointer"
+              className="text-blue-400 hover:underline cursor-pointer"
             >
               로그인
             </span>

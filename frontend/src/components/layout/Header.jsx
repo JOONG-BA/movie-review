@@ -7,7 +7,7 @@ import { SignupDialog } from "@/components/ui/SignupDialog.jsx"
 import { useState } from "react"
 
 const Header = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(true)
 
   return (
     <header className="fixed w-full z-50 bg-gray-900 text-white flex items-center justify-center overflow-hidden top-0">
