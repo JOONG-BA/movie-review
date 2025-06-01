@@ -39,8 +39,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,   "/api/reviews/**").hasRole("USER")
                         .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").hasRole("USER")
                         .requestMatchers(HttpMethod.GET,    "/api/users/me/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/users/me").hasRole("USER")
                         .anyRequest().authenticated()
                 )
+
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 상태 유지 안 함
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -45,9 +45,6 @@ public class UserService {
         return dto;
     }
 
-    /**
-     * 내가 쓴 리뷰 전체 조회
-     */
     public List<MyReviewDTO> getMyReviews(User user) {
         return reviewRepository.findAllByUser(user).stream()
                 .map(r -> new MyReviewDTO(
