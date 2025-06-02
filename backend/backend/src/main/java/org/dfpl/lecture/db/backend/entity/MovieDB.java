@@ -58,20 +58,36 @@ public class MovieDB {
 
     // ----- 관계: 영화 ↔ 장르 (다대다) -----
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<MovieGenre> movieGenres = new HashSet<>();
 
-    // ----- 관계: 영화 ↔ 배우(캐스트) (다대다를 풀어서 일대다+다대일) -----
+    // ----- 관계: 영화 ↔ 배우(캐스트) (다대다를 풀어 일대다+다대일) -----
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<MovieCast> movieCasts = new HashSet<>();
 
-    /** 편의 생성자 (필요히 수정 가능) */
-    public MovieDB(Long tmdbId, String title, String overview,
-                   String originalTitle, String originalLanguage,
-                   LocalDate releaseDate, Integer runtime,
-                   Double popularity, Double voteAverage, Integer voteCount,
-                   String status, String tagline, Long budget, Long revenue,
-                   String homepage, String backdropPath, String posterPath,
-                   Boolean releasedInKorea, LocalDate releaseDateKorea) {
+    /**
+     * 편의 생성자 (필요에 따라 조정)
+     */
+    public MovieDB(Long tmdbId,
+                   String title,
+                   String overview,
+                   String originalTitle,
+                   String originalLanguage,
+                   LocalDate releaseDate,
+                   Integer runtime,
+                   Double popularity,
+                   Double voteAverage,
+                   Integer voteCount,
+                   String status,
+                   String tagline,
+                   Long budget,
+                   Long revenue,
+                   String homepage,
+                   String backdropPath,
+                   String posterPath,
+                   Boolean releasedInKorea,
+                   LocalDate releaseDateKorea) {
         this.tmdbId = tmdbId;
         this.title = title;
         this.overview = overview;

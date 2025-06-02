@@ -22,5 +22,15 @@ public class Cast {
     private String profilePath;    // 프로필 이미지 경로 ("/…jpg")
 
     @OneToMany(mappedBy = "cast", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<MovieCast> movieCasts = new HashSet<>();
+
+    /**
+     * 2-argument 생성자(앱에서 직접 호출할 때)
+     */
+    public Cast(Long id, String name, String profilePath) {
+        this.id = id;
+        this.name = name;
+        this.profilePath = profilePath;
+    }
 }
