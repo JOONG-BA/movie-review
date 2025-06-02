@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.dfpl.lecture.db.backend.dto.MovieDetailDTO;
 import org.dfpl.lecture.db.backend.dto.MovieDetailDTO.CastDTO;
 import org.dfpl.lecture.db.backend.dto.MovieDetailDTO.GenreDTO;
+import org.dfpl.lecture.db.backend.dto.MovieSummaryDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Component;
@@ -171,6 +172,32 @@ public class TmdbApiUtil {
                 .build();
     }
 
+    /**
+     * 3) TMDb 검색 API (/search/movie) 호출하여,
+     *    간단한 요약 정보(MovieSummaryDTO) 리스트 반환
+     *    language=ko-KR, query={query}, page=1
+     */
+    public List<MovieSummaryDTO> searchMovies(String query) throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString("https://api.themoviedb.org/3/search/movie")
+                .queryParam("language", "ko-KR")
+                .queryParam("query", query)
+                .queryParam("page", 1)
+                .build()
+                .toUri();
+
+        JsonNode root = callGet(uri);
+        // results 배열에서 id, title, poster_path, popularity 추출
+        return StreamSupport.stream(root.path("results").spliterator(), false)
+                .map(r -> MovieSummaryDTO.builder()
+                        .tmdbId(r.path("id").asLong())
+                        .title(r.path("title").asText(null))
+                        .posterPath(r.path("poster_path").asText(null))
+                        .popularity(r.path("popularity").asDouble(0.0))
+                        .build())
+                .toList();
+    }
+
     /** TMDb API GET 호출을 수행하는 공통 private 메서드 */
     private JsonNode callGet(URI uri) throws Exception {
         RequestEntity<Void> request = RequestEntity
@@ -185,4 +212,5 @@ public class TmdbApiUtil {
         }
         return objectMapper.readTree(response.getBody());
     }
+
 }

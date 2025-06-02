@@ -4,22 +4,19 @@ import lombok.RequiredArgsConstructor;
 import org.dfpl.lecture.db.backend.dto.MovieDetailDTO;
 import org.dfpl.lecture.db.backend.dto.MovieDetailDTO.CastDTO;
 import org.dfpl.lecture.db.backend.dto.MovieDetailDTO.GenreDTO;
-import org.dfpl.lecture.db.backend.entity.Cast;
-import org.dfpl.lecture.db.backend.entity.Genre;
-import org.dfpl.lecture.db.backend.entity.MovieCast;
-import org.dfpl.lecture.db.backend.entity.MovieDB;
-import org.dfpl.lecture.db.backend.entity.MovieGenre;
-import org.dfpl.lecture.db.backend.repository.CastRepository;
-import org.dfpl.lecture.db.backend.repository.GenreRepository;
-import org.dfpl.lecture.db.backend.repository.MovieCastRepository;
-import org.dfpl.lecture.db.backend.repository.MovieGenreRepository;
-import org.dfpl.lecture.db.backend.repository.MovieRepository;
+import org.dfpl.lecture.db.backend.dto.MovieSummaryDTO;
+import org.dfpl.lecture.db.backend.entity.*;
+import org.dfpl.lecture.db.backend.repository.*;
 import org.dfpl.lecture.db.backend.util.TmdbApiUtil;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -160,5 +157,90 @@ public class MovieService {
 
         // 4) 최종 저장 (Cascade 옵션으로 관계 엔티티도 함께 저장)
         movieRepository.save(movie);
+    }
+    /**
+     * 한국에서 상영된 영화 중에서 인기도 순 상위 N개를 가져와 DTO 리스트로 변환
+     */
+    public List<MovieSummaryDTO> getTopNPopularInKorea(int limit) {
+        // Pageable: 첫 페이지(0), size = limit, 정렬은 Repository 메서드가 이미 popularity desc 순서로 처리
+        Pageable pageable = PageRequest.of(0, limit);
+        List<MovieDB> movies = movieRepository.findByReleasedInKoreaTrueOrderByPopularityDesc(pageable);
+
+        return movies.stream()
+                .map(m -> MovieSummaryDTO.builder()
+                        .tmdbId(m.getTmdbId())
+                        .title(m.getTitle())
+                        .posterPath(m.getPosterPath())
+                        .popularity(m.getPopularity())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 특정 장르 ID에 속하며, 한국에서 상영된 영화 중 인기도 순 상위 N개를 가져오는 메서드
+     */
+    public List<MovieSummaryDTO> getTopNPopularInKoreaByGenre(Long genreId, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        List<MovieDB> movies = movieRepository
+                .findByReleasedInKoreaTrueAndMovieGenres_Genre_IdOrderByPopularityDesc(genreId, pageable);
+
+        return movies.stream()
+                .map(m -> MovieSummaryDTO.builder()
+                        .tmdbId(m.getTmdbId())
+                        .title(m.getTitle())
+                        .posterPath(m.getPosterPath())
+                        .popularity(m.getPopularity())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * (추가) 검색 시 API 요약 결과를 먼저 가져오고, DB에 없으면 상세 가져와 저장 → 최종적으로 DB 기반으로 MovieSummaryDTO 반환
+     *
+     * @param query 키워드 (예: "어벤져스")
+     * @param limit 최대 몇 개까지 결과를 돌려줄지 (예: 10)
+     * @return MovieSummaryDTO 목록 (tmdbId, title, posterPath, popularity 포함)
+     */
+    @Transactional
+    public List<MovieSummaryDTO> searchAndSaveIfMissing(String query, int limit) {
+        List<MovieSummaryDTO> apiSummaries;
+        try {
+            // 1) TMDb 검색 API를 호출해 요약 정보 리스트를 가져온다.
+            apiSummaries = tmdbApiUtil.searchMovies(query);
+        } catch (Exception e) {
+            System.err.println("[영화 검색 실패: query=" + query + "] " + e.getMessage());
+            return List.of();
+        }
+
+        List<MovieSummaryDTO> finalResults = new ArrayList<>();
+
+        // 2) 검색 결과 중에서 최대 limit개까지만 처리
+        for (int i = 0; i < apiSummaries.size() && finalResults.size() < limit; i++) {
+            MovieSummaryDTO apiSummary = apiSummaries.get(i);
+            Long tmdbId = apiSummary.getTmdbId();
+
+            // 2-1) DB에 없으면 saveMovieDetail로 상세정보 + 저장
+            if (!movieRepository.existsByTmdbId(tmdbId)) {
+                saveMovieDetail(tmdbId);
+            }
+
+            // 2-2) DB에서 엔티티를 꺼내어 Summary DTO로 변환
+            MovieDB movie = movieRepository.findByTmdbId(tmdbId);
+            if (movie == null) {
+                // 만약 saveMovieDetail에서 실패해 DB에 없다면, API 요약 정보(apiSummary)를 그대로 넣는다.
+                finalResults.add(apiSummary);
+            } else {
+                // DB에 정상 저장된 엔티티 기반으로 MovieSummaryDTO 생성
+                MovieSummaryDTO summary = MovieSummaryDTO.builder()
+                        .tmdbId(movie.getTmdbId())
+                        .title(movie.getTitle())
+                        .posterPath(movie.getPosterPath())
+                        .popularity(movie.getPopularity())
+                        .build();
+                finalResults.add(summary);
+            }
+        }
+
+        return finalResults;
     }
 }
