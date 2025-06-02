@@ -62,6 +62,11 @@ public class MovieService {
      */
     @Transactional
     public void saveMovieDetail(Long tmdbId) {
+
+        if (movieRepository.existsByTmdbId(tmdbId)) {
+            return;
+        }
+
         MovieDetailDTO detailDTO;
         try {
             detailDTO = tmdbApiUtil.fetchMovieDetail(tmdbId);
