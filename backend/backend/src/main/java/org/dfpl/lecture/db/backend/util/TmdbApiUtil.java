@@ -16,6 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
@@ -24,46 +25,69 @@ import java.util.stream.StreamSupport;
 public class TmdbApiUtil {
 
     private final RestTemplate restTemplate;
-
-    @Value("${tmdb.api.bearer}")
-    private String bearerToken;
-
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * 1) TMDb 인기 영화 목록 (page 단위) → ID 리스트 반환
-     */
+    /** application.properties 에 설정된 TMDb v3 API Key */
+    @Value("${tmdb.api.key}")
+    private String tmdbApiKey;
+
+    // ─────────────────────────────────────────────────────────────────
+    // (1) TMDb 인기 영화 → ID 리스트 반환 (v3 API Key 방식)
+    //    GET https://api.themoviedb.org/3/movie/popular?api_key={v3키}&language=ko-KR&page={page}
+    // ─────────────────────────────────────────────────────────────────
     public List<Long> fetchPopularMovieIds(int page) throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString("https://api.themoviedb.org/3/movie/popular")
+                .queryParam("api_key", tmdbApiKey)
                 .queryParam("language", "ko-KR")
                 .queryParam("page", page)
                 .build()
                 .toUri();
 
-        JsonNode root = callGet(uri);
+        RequestEntity<Void> request = RequestEntity
+                .get(uri)
+                .header("Accept", "application/json")
+                .build();
+
+        var response = restTemplate.exchange(request, String.class);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new IllegalStateException("TMDb 인기 영화 호출 실패: HTTP " + response.getStatusCode());
+        }
+
+        JsonNode root = objectMapper.readTree(response.getBody());
         return StreamSupport.stream(root.path("results").spliterator(), false)
                 .map(r -> r.path("id").asLong())
                 .toList();
     }
 
-    /**
-     * 2) TMDb 영화 상세정보 + 크레딧 + release_dates + 이미지 + 비디오 호출
-     *    → language=ko-KR, append_to_response=credits,release_dates,images,videos
-     */
+    // ─────────────────────────────────────────────────────────────────
+    // (2) TMDb 영화 상세정보 + 크레딧 + Release Dates + 이미지 + 비디오 호출 (v3 API Key 방식)
+    //    GET https://api.themoviedb.org/3/movie/{movieId}?api_key={v3키}&language=ko-KR&append_to_response=credits,release_dates,images,videos
+    // ─────────────────────────────────────────────────────────────────
     public MovieDetailDTO fetchMovieDetail(Long movieId) throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString("https://api.themoviedb.org/3/movie/" + movieId)
+                .queryParam("api_key", tmdbApiKey)
                 .queryParam("language", "ko-KR")
                 .queryParam("append_to_response", "credits,release_dates,images,videos")
                 .build()
                 .toUri();
 
-        JsonNode root = callGet(uri);
+        RequestEntity<Void> request = RequestEntity
+                .get(uri)
+                .header("Accept", "application/json")
+                .build();
 
-        // -------------------------------
+        var response = restTemplate.exchange(request, String.class);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new IllegalStateException("TMDb 상세 정보 호출 실패: HTTP " + response.getStatusCode());
+        }
+
+        JsonNode root = objectMapper.readTree(response.getBody());
+
+        // ─────────────────────────────────────────────────────────────────────────
         // 1) 기본 영화 정보 파싱
-        // -------------------------------
+        // ─────────────────────────────────────────────────────────────────────────
         Long id = root.path("id").asLong();
         String title = root.path("title").asText(null);
         String overview = root.path("overview").asText(null);
@@ -87,9 +111,9 @@ public class TmdbApiUtil {
         String backdropPath = root.path("backdrop_path").asText(null);
         String posterPath = root.path("poster_path").asText(null);
 
-        // -------------------------------
+        // ─────────────────────────────────────────────────────────────────────────
         // 2) 장르(Genre) 파싱
-        // -------------------------------
+        // ─────────────────────────────────────────────────────────────────────────
         List<GenreDTO> genreList = StreamSupport.stream(root.path("genres").spliterator(), false)
                 .map(g -> new GenreDTO(
                         g.path("id").asLong(),
@@ -97,9 +121,9 @@ public class TmdbApiUtil {
                 ))
                 .toList();
 
-        // -------------------------------
+        // ─────────────────────────────────────────────────────────────────────────
         // 3) 크레딧(Credits → Cast) 파싱
-        // -------------------------------
+        // ─────────────────────────────────────────────────────────────────────────
         List<CastDTO> castList = StreamSupport.stream(root.path("credits").path("cast").spliterator(), false)
                 .map(c -> new CastDTO(
                         c.path("id").asLong(),
@@ -109,9 +133,9 @@ public class TmdbApiUtil {
                 ))
                 .toList();
 
-        // -------------------------------
+        // ─────────────────────────────────────────────────────────────────────────
         // 4) Release Dates 파싱 (한국 개봉 여부/날짜)
-        // -------------------------------
+        // ─────────────────────────────────────────────────────────────────────────
         Boolean releasedInKorea = false;
         LocalDate releaseDateKorea = null;
         JsonNode resultsNode = root.path("release_dates").path("results");
@@ -136,15 +160,15 @@ public class TmdbApiUtil {
             }
         }
 
-        // -------------------------------
-        // 5) 이미지 / 비디오 유무 체크 (옵션)
-        // -------------------------------
+        // ─────────────────────────────────────────────────────────────────────────
+        // 5) 이미지/비디오 유무 체크 (옵션)
+        // ─────────────────────────────────────────────────────────────────────────
         boolean hasImages = root.path("images").path("posters").size() > 0;
         boolean hasVideos = root.path("videos").path("results").size() > 0;
 
-        // -------------------------------
+        // ─────────────────────────────────────────────────────────────────────────
         // 6) MovieDetailDTO 반환
-        // -------------------------------
+        // ─────────────────────────────────────────────────────────────────────────
         return MovieDetailDTO.builder()
                 .tmdbId(id)
                 .title(title)
@@ -172,22 +196,31 @@ public class TmdbApiUtil {
                 .build();
     }
 
-    /**
-     * 3) TMDb 검색 API (/search/movie) 호출하여,
-     *    간단한 요약 정보(MovieSummaryDTO) 리스트 반환
-     *    language=ko-KR, query={query}, page=1
-     */
+    // ─────────────────────────────────────────────────────────────────
+    // (3) TMDb 검색 API (/search/movie) 호출하여 MovieSummaryDTO 리스트 반환
+    //    GET https://api.themoviedb.org/3/search/movie?api_key={v3키}&language=ko-KR&query={query}&page=1
+    // ─────────────────────────────────────────────────────────────────
     public List<MovieSummaryDTO> searchMovies(String query) throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString("https://api.themoviedb.org/3/search/movie")
+                .queryParam("api_key", tmdbApiKey)
                 .queryParam("language", "ko-KR")
                 .queryParam("query", query)
                 .queryParam("page", 1)
                 .build()
                 .toUri();
 
-        JsonNode root = callGet(uri);
-        // results 배열에서 id, title, poster_path, popularity 추출
+        RequestEntity<Void> request = RequestEntity
+                .get(uri)
+                .header("Accept", "application/json")
+                .build();
+
+        var response = restTemplate.exchange(request, String.class);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new IllegalStateException("TMDb 검색 API 실패: HTTP " + response.getStatusCode());
+        }
+
+        JsonNode root = objectMapper.readTree(response.getBody());
         return StreamSupport.stream(root.path("results").spliterator(), false)
                 .map(r -> MovieSummaryDTO.builder()
                         .tmdbId(r.path("id").asLong())
@@ -197,20 +230,4 @@ public class TmdbApiUtil {
                         .build())
                 .toList();
     }
-
-    /** TMDb API GET 호출을 수행하는 공통 private 메서드 */
-    private JsonNode callGet(URI uri) throws Exception {
-        RequestEntity<Void> request = RequestEntity
-                .get(uri)
-                .header("Authorization", "Bearer " + bearerToken)
-                .header("Accept", "application/json")
-                .build();
-
-        var response = restTemplate.exchange(request, String.class);
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new IllegalStateException("TMDb API 호출 에러: " + response.getStatusCode());
-        }
-        return objectMapper.readTree(response.getBody());
-    }
-
 }
