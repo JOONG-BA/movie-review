@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaStar, FaRegStar, FaRegStarHalfStroke } from 'react-icons/fa6';
+import {FaRegStarHalf, FaStarHalf} from "react-icons/fa";
 
 export default function StarRatingInput({ onRate }) {
     const [hovered, setHovered] = useState(0);
@@ -27,22 +28,36 @@ export default function StarRatingInput({ onRate }) {
     };
 
     const renderStar = (index, size) => {
-        const value = hovered || selected;
-        if (value >= index) return <FaStar size={size} />;
-        if (value >= index - 0.5) return <FaRegStarHalfStroke size={size} />;
-        return <FaRegStar size={size} />;
+        const value = hovered !== null ? hovered : selected;
+
+        if (value >= index) {
+            // full star
+            return <FaStar className="text-yellow-400" size={size} />;
+        } else if (value >= index - 0.5) {
+            // half star (left half yellow, right half gray)
+            return (
+                <div className="relative" style={{ width: size, height: size }}>
+                    <FaStar className="text-gray-200 absolute top-0 left-0" size={size} />
+                    <div className="absolute top-0 left-0 w-1/2 overflow-hidden">
+                        <FaStar className="text-yellow-400" size={size} />
+                    </div>
+                </div>
+            );
+        } else {
+            return <FaStar className="text-gray-200" size={size} />; // 비어 있는 경우 앞에서 렌더링 안 하고 뒤 배경만 보여줌
+        }
     };
 
     return (
-        <div>
-            <div className="grid grid-cols-5 text-yellow-400 text-xl cursor-pointer">
+        <div className="flex w-full flex-col mb-5 pb-5 border-b border-b-gray-300 md:pb-0 md:border-b-0 md:mb-0 flex-1 items-center lg:items-start">
+            <div className="flex cursor-pointer">
                 {[1, 2, 3, 4, 5].map((i) => (
                     <div
                         key={i}
                         onClick={(e) => handleClick(e, i)}
                         onMouseMove={(e) => handleMouseMove(e, i)}
                         onMouseLeave={handleMouseLeave}
-                        className="pr-1 flex items-center justify-center"
+                        className="pr-0.5 flex items-center justify-center"
                     >
                         {renderStar(i, 42)}
                     </div>

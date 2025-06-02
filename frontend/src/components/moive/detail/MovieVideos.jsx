@@ -38,14 +38,6 @@ export default function MovieVideos({ videos = [] }) {
                 }
             }
         ],
-        beforeChange: () => setIsDragging(true),
-        afterChange: () => setTimeout(() => setIsDragging(false), 50)
-    };
-
-    const handleImageClick = (src) => {
-        if (!isDragging) {
-            setSelectedImage(src);
-        }
     };
 
     return (

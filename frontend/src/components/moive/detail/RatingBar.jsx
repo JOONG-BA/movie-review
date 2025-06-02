@@ -29,12 +29,12 @@ export default function RatingBar({ movieId }) {
     };
 
     return (
-        <div className="flex justify-between justify-center items-center w-full py-5 text-xs text-gray-500">
-            <div className="flex items-center flex-1">
+        <div className="flex flex-col lg:flex-row justify-between justify-center items-center w-full mb-5 text-xs text-gray-500">
+            <div className="flex w-full flex-col md:flex-row items-center flex-1 pb-5 mb-5 border-b lg:border-b-0 border-b-gray-300 lg:pb-0 lg:mb-0">
                 <StarRatingInput onRate={handleRate} />
                 <RatingAverage average={average} />
             </div>
-            <div className="flex-1">
+            <div className="">
                 <RatingActions liked={liked} onLike={handleLike} />
             </div>
         </div>

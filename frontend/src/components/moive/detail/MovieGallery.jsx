@@ -38,8 +38,6 @@ export default function MovieGallery({ images = [] }) {
                 }
             }
         ],
-        beforeChange: () => setIsDragging(true),
-        afterChange: () => setTimeout(() => setIsDragging(false), 50)
     };
 
     const handleImageClick = (src) => {
