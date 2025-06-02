@@ -59,6 +59,14 @@ public class UserController {
                 .orElseThrow(() -> new UsernameNotFoundException("사용자 없음: " + auth.getName()));
     }
 
+    @GetMapping("/me/favorites")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<List<FavoriteMovieDTO>> getMyFavorites(Authentication auth) {
+        String email = auth.getName();
+        List<FavoriteMovieDTO> favorites = favoriteService.findFavoritesByEmail(email);
+        return ResponseEntity.ok(favorites);
+    }
+
     @GetMapping("/me")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<MyPageDTO> myPage(Authentication auth) {

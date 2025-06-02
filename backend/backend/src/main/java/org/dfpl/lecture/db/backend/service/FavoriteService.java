@@ -1,6 +1,8 @@
 package org.dfpl.lecture.db.backend.service;
 
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.dfpl.lecture.db.backend.dto.FavoriteMovieDTO;
 import org.dfpl.lecture.db.backend.entity.Favorite;
 import org.dfpl.lecture.db.backend.entity.MovieDB;
 import org.dfpl.lecture.db.backend.entity.User;
@@ -19,6 +21,29 @@ public class FavoriteService {
     private final FavoriteRepository favoriteRepository;
     private final UserRepository userRepository;
     private final MovieRepository movieRepository;
+
+    @Transactional(readOnly = true)
+    public List<FavoriteMovieDTO> findFavoritesByEmail(String email) {
+        // (1) 이메일로 User 엔티티 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: email=" + email));
+
+        // (2) User 엔티티로 즐겨찾기 목록(Favorite 엔티티)을 모두 가져오기
+        List<Favorite> favorites = favoriteRepository.findAllByUser(user);
+
+        // (3) Favorite → FavoriteMovieDTO로 변환
+        return favorites.stream()
+                .map(fav -> {
+                    MovieDB m = fav.getMovie();
+                    return new FavoriteMovieDTO(
+                            m.getId(),            // movieId
+                            m.getTitle(),         // title
+                            m.getPosterPath()     // posterPath
+                            // 필요하다면 추가 필드(getReleaseDate(), getVoteAverage() 등)도 넣으세요
+                    );
+                })
+                .collect(Collectors.toList());
+    }
 
     @Transactional
     public Favorite addFavorite(User user, Long movieId) {
