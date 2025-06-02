@@ -27,9 +27,12 @@ public class Genre {
 
     /**
      * 2-argument 생성자를 직접 호출할 때 필요한 시그니처
+     * 이 생성자에서 movieGenres를 반드시 초기화해야 합니다.
      */
     public Genre(Long id, String name) {
         this.id = id;
         this.name = name;
+        // 연관관계 컬렉션도 빈 HashSet으로 초기화
+        this.movieGenres = new HashSet<>();
     }
 }

@@ -26,11 +26,14 @@ public class Cast {
     private Set<MovieCast> movieCasts = new HashSet<>();
 
     /**
-     * 2-argument 생성자(앱에서 직접 호출할 때)
+     * 3-argument 생성자(앱에서 직접 호출할 때)
+     * 이 생성자에서 movieCasts를 반드시 초기화해야 합니다.
      */
     public Cast(Long id, String name, String profilePath) {
         this.id = id;
         this.name = name;
         this.profilePath = profilePath;
+        // 연관관계 컬렉션도 빈 HashSet으로 초기화
+        this.movieCasts = new HashSet<>();
     }
 }
