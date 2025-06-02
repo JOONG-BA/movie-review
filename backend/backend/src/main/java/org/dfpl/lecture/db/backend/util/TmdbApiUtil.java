@@ -201,6 +201,7 @@ public class TmdbApiUtil {
     //    GET https://api.themoviedb.org/3/search/movie?api_key={v3키}&language=ko-KR&query={query}&page=1
     // ─────────────────────────────────────────────────────────────────
     public List<MovieSummaryDTO> searchMovies(String query) throws Exception {
+        // 1) URI 생성
         URI uri = UriComponentsBuilder
                 .fromUriString("https://api.themoviedb.org/3/search/movie")
                 .queryParam("api_key", tmdbApiKey)
@@ -210,6 +211,10 @@ public class TmdbApiUtil {
                 .build()
                 .toUri();
 
+        // ← 이 줄을 추가해서 콘솔에 최종 요청 URL을 찍어 봅니다.
+        System.out.println("[DEBUG] TMDb Search URI = " + uri.toString());
+
+        // 2) RequestEntity 생성 및 호출
         RequestEntity<Void> request = RequestEntity
                 .get(uri)
                 .header("Accept", "application/json")
@@ -220,6 +225,7 @@ public class TmdbApiUtil {
             throw new IllegalStateException("TMDb 검색 API 실패: HTTP " + response.getStatusCode());
         }
 
+        // 3) 응답 JSON 파싱해서 MovieSummaryDTO 리스트 반환
         JsonNode root = objectMapper.readTree(response.getBody());
         return StreamSupport.stream(root.path("results").spliterator(), false)
                 .map(r -> MovieSummaryDTO.builder()
@@ -230,4 +236,5 @@ public class TmdbApiUtil {
                         .build())
                 .toList();
     }
+
 }

@@ -1,28 +1,24 @@
 package org.dfpl.lecture.db.backend.scheduler;
 
+import lombok.RequiredArgsConstructor;
 import org.dfpl.lecture.db.backend.service.MovieService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class MovieScheduler {
 
     private final MovieService movieService;
 
-    public MovieScheduler(MovieService movieService) {
-        this.movieService = movieService;
-    }
-
     /**
-     * 매일 새벽 3시에 크롤링을 실행합니다.
-     * - totalPages는 원하는 만큼 조정하세요 (예: 5페이지 → 약 100개 영화)
-     * - @Scheduled 표현식을 바꿔서 다른 시간대/주기로 설정할 수 있습니다.
+     * 매일 오전 3시에 TMDb 인기 영화 5페이지까지 순차적으로 가져와 DB에 저장
+     * (Asia/Seoul 기준)
      */
-    @Scheduled(cron = "0 0 3 * * ?")
-    public void dailyCrawl() {
+    @Scheduled(cron = "0 0 3 * * ?", zone = "Asia/Seoul")
+    public void fetchDailyPopularMovies() {
         int totalPages = 5;
-        System.out.println(">>> [스케줄러] TMDb 인기 영화 크롤링 시작 (총 " + totalPages + " 페이지)");
-        movieService.crawlPopularMovies(totalPages);
-        System.out.println(">>> [스케줄러] TMDb 크롤링 완료");
+        // 기존 crawlPopularMovies(totalPages) → fetchAndSavePopularMovies(1, totalPages)로 변경
+        movieService.fetchAndSavePopularMovies(1, totalPages);
     }
 }

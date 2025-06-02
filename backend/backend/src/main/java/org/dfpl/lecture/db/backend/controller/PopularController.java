@@ -1,5 +1,3 @@
-// src/main/java/org/dfpl/lecture/db/backend/controller/PopularController.java
-
 package org.dfpl.lecture.db.backend.controller;
 
 import lombok.RequiredArgsConstructor;
@@ -10,6 +8,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * PopularController: 이미 DB에 저장된 영화 중
+ * “장르별/한국 개봉/인기도 Top N” 조회 전용
+ */
 @RestController
 @RequestMapping("/api/popular")
 @RequiredArgsConstructor
@@ -17,25 +19,12 @@ public class PopularController {
 
     private final MovieService movieService;
 
-    /**
-     * (1) 한국 개봉된 영화 중 인기도 TOP N 가져오기
-     *    예: GET /api/popular/in-korea?limit=10
-     */
-    @GetMapping("/in-korea")
-    public ResponseEntity<List<MovieSummaryDTO>> getPopularInKorea(
-            @RequestParam(defaultValue = "10") int limit) {
-        List<MovieSummaryDTO> list = movieService.getTopNPopularInKorea(limit);
-        return ResponseEntity.ok(list);
-    }
-
-    /**
-     * (2) 특정 장르 ID에 속하며 한국에서 개봉된 영화 중 인기도 TOP N 가져오기
-     *    예: GET /api/popular/genre/28?limit=5  (28은 액션 장르 ID 예시)
-     */
-    @GetMapping("/genre/{genreId}")
-    public ResponseEntity<List<MovieSummaryDTO>> getPopularInKoreaByGenre(
+    // GET /api/popular/{genreId}?limit={개수}
+    @GetMapping("/{genreId}")
+    public ResponseEntity<List<MovieSummaryDTO>> getTopNPopularInKoreaByGenre(
             @PathVariable Long genreId,
             @RequestParam(defaultValue = "10") int limit) {
+
         List<MovieSummaryDTO> list = movieService.getTopNPopularInKoreaByGenre(genreId, limit);
         return ResponseEntity.ok(list);
     }
