@@ -10,9 +10,28 @@ export function SignupDialog() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
-  const handleSignup = () => {
-    console.log("회원가입 시도:", { name, email, password })
-    setOpen(false)
+  const handleSignup = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password, nickname: name }) // 백엔드에서 nickname으로 받음
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        alert("회원가입 실패: " + (data.error || "알 수 없는 오류"))
+        return
+      }
+
+      alert("회원가입 성공! 로그인 해주세요.")
+      setOpen(false)
+    } catch (err) {
+      alert("회원가입 중 오류 발생: " + err.message)
+    }
   }
 
   return (
@@ -33,7 +52,7 @@ export function SignupDialog() {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="bg-gray-900/95 text-white rounded-xl shadow-2xl backdrop-blur-md px-8 py-6 max-w-md">
           <DialogHeader>
             <DialogTitle>회원가입</DialogTitle>
           </DialogHeader>

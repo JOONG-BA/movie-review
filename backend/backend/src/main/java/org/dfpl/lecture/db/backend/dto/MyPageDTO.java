@@ -11,5 +11,5 @@ public class MyPageDTO {
     private long reviewCount;
     private long favoriteCount;
     private List<MyReviewDTO> recentReviews;    // 최신 3개
-   // private List<MovieSummaryDTO> favoriteMovies; // 최신 3개
+    private List<FavoriteMovieDTO> favoriteMovies; // 최신 3개 즐겨찾기 영화
 }
