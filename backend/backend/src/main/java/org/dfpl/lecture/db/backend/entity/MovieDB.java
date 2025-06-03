@@ -1,36 +1,59 @@
 package org.dfpl.lecture.db.backend.entity;
 
-import jakarta.persistence.*;
 import lombok.*;
-import org.dfpl.lecture.db.backend.dto.MovieSearchResultDTO;
+import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.util.List;
 
-@Getter @Setter @Builder
-@NoArgsConstructor @AllArgsConstructor
 @Entity
-@Table(name = "movie_db", indexes = {
-        @Index(name = "idx_tmdb_id", columnList = "tmdb_id", unique = true)
-})
+@Table(name = "movie")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class MovieDB {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id
+    private Long id;  // TMDB의 movie ID
 
-    @Column(name = "tmdb_id", nullable = false, unique = true)
-    private Long tmdbId;
-
+    @Column(nullable = false)
     private String title;
-    private String posterPath;
-    private String releaseDate;
-    private Double popularity;
 
-    /** TMDb 검색 DTO → 엔티티 */
-    public static MovieDB fromSearchDTO(MovieSearchResultDTO dto) {
-        return MovieDB.builder()
-                .tmdbId(dto.getTmdbId())
-                .title(dto.getTitle())
-                .posterPath(dto.getPosterPath())
-                .releaseDate(dto.getReleaseDate())
-                .popularity(dto.getPopularity())
-                .build();
-    }
+    @Column(name = "original_title")
+    private String originalTitle;
+
+    @Lob
+    private String overview;
+
+    @Column(name = "release_date")
+    private LocalDate releaseDate;
+
+    private String country;
+
+    private Integer runtime;
+
+    @Column(name = "vote_average")
+    private Double voteAverage;
+
+    @Column(name = "vote_count")
+    private Integer voteCount;
+
+    @Column(name = "poster_path")
+    private String posterPath;
+
+    @Column(name = "backdrop_path")
+    private String backdropPath;
+
+    /**
+     * Movie ↔ Genre 는 N:M 관계입니다.
+     * movie_genre 라는 조인 테이블을 사용하여 매핑합니다.
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "movie_genre",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private List<Genre> genres;
 }

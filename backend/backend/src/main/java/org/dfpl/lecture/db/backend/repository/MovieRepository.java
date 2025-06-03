@@ -1,31 +1,20 @@
 package org.dfpl.lecture.db.backend.repository;
 
 import org.dfpl.lecture.db.backend.entity.MovieDB;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
-
+@Repository
 public interface MovieRepository extends JpaRepository<MovieDB, Long> {
 
-    /* 공백·대소문자 무시 + 연관성 → 인기순 정렬 */
-    @Query(value = """
-        SELECT  m.*
-        FROM    movie_db m
-        WHERE   LOWER(REPLACE(m.title, ' ', ''))
-                LIKE CONCAT('%', :norm, '%')
-        ORDER BY
-            CASE
-                WHEN LOWER(REPLACE(m.title, ' ', '')) = :norm THEN 3
-                WHEN LOWER(REPLACE(m.title, ' ', '')) LIKE CONCAT(:norm, '%') THEN 2
-                ELSE 1
-            END DESC,
-            m.popularity DESC
-        """, nativeQuery = true)
-    List<MovieDB> searchByRelevance(@Param("norm") String normalized);
-    boolean existsByTmdbId(Long tmdbId);
+    /**
+     * 특정 장르 ID (genre.id) 를 가진 영화들을
+     * voteCount(투표 수) 기준 내림차순(인기순)으로 페이징 조회합니다.
+     */
+    Page<MovieDB> findByGenres_IdOrderByVoteCountDesc(Long genreId, Pageable pageable);
 
-    Optional<MovieDB> findByTmdbId(Long tmdbId);
+    // 글로벌 인기순(페이징) 조회: 기본 findAll(Pageable) + Sort 사용 가능
+    // List<MovieDB> findAllByOrderByVoteCountDesc(Pageable pageable);
 }

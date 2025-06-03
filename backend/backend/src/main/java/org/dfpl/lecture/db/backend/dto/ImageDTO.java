@@ -1,10 +1,9 @@
 package org.dfpl.lecture.db.backend.dto;
 
-import lombok.*;
+import lombok.Data;
 
-@Getter @Builder @AllArgsConstructor
+@Data
 public class ImageDTO {
-    private String filePath;    // /original/....jpg
-    private Integer width;
-    private Integer height;
+    private String type; // "backdrop" 또는 "poster"
+    private String url;  // TmdbApiUtil.getImageUrl(filePath) 결과
 }

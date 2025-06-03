@@ -1,11 +1,9 @@
 package org.dfpl.lecture.db.backend.dto;
 
-import lombok.*;
+import lombok.Data;
 
-@Getter @Builder @AllArgsConstructor
+@Data
 public class VideoDTO {
-    private String key;     // YouTube key 등
-    private String site;    // "YouTube"
-    private String name;    // "Official Trailer"
-    private String type;    // "Trailer", "Teaser" ...
+    private String name; // 예고편 이름(e.g. "Official Trailer")
+    private String url;  // "https://www.youtube.com/watch?v={key}"
 }

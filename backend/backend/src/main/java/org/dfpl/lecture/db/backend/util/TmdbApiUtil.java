@@ -1,108 +1,60 @@
 package org.dfpl.lecture.db.backend.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import org.dfpl.lecture.db.backend.dto.MovieSearchResultDTO;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.RequestEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
-import java.net.URI;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.StreamSupport;
-
-
-@Component
-@RequiredArgsConstructor
 public class TmdbApiUtil {
 
-    @Value("${tmdb.api.key}")
-    private String apiKey;
+    private static final String API_BASE_URL = "https://api.themoviedb.org/3";
+    private static final String IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
+    // TODO: 직접 하드코딩하기보다는 application.properties나 환경변수로 옮겨 두는 것을 권장합니다.
+    private static final String BEARER_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMjE3YmI3MzZiN2E5NzU1MzAyZGY4MzVkNTM3NzI0ZCIsIm5iZiI6MTc0ODAxODY3Mi44NzY5OTk5LCJzdWIiOiI2ODMwYTVmMGI4NTAwYzkwODVlYjI1NDYiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.GFi6vG9vKZkGbfF00fv0RAyzIcdILnP-EzfcAOeiEnM";
+    private static final String LANGUAGE = "ko-KR";
+    private static final String REGION = "KR";
 
-    private final RestTemplate rest;
-    private final ObjectMapper om = new ObjectMapper();
+    private static final OkHttpClient client = new OkHttpClient();
 
-    /* ---------- URL 빌더 ---------- */
-
-    /** locale(ko-KR 등) 기반 영화 상세 + credits·images·videos */
-    public URI buildMovieDetailUri(long movieId, Locale locale) {
-        return UriComponentsBuilder
-                .fromUriString("https://api.themoviedb.org/3/movie/{id}")
-                .queryParam("api_key", apiKey)
-                .queryParam("language", locale)
-                .queryParam("append_to_response", "credits,images,videos")
-                .queryParam("include_image_language", locale + ",null")   // 로컬 + 언어 없음
-                .build(movieId);
+    /**
+     * 주어진 endpoint(쿼리 포함 되었다고 가정)를
+     * TMDB API_BASE_URL + endpoint 로 GET 요청 객체를 만들어 반환합니다.
+     */
+    public static Request buildRequest(String endpointWithQuery) {
+        return new Request.Builder()
+                .url(API_BASE_URL + endpointWithQuery)
+                .get()
+                .addHeader("accept", "application/json")
+                .addHeader("Authorization", BEARER_TOKEN)
+                .build();
     }
 
-    /* ---------- 파싱 헬퍼 ---------- */
-
-    public JsonNode callGet(URI uri) {
-        RequestEntity<Void> req = new RequestEntity<>(HttpMethod.GET, uri);
-        String json = rest.exchange(req, String.class).getBody();
-        try {
-            return om.readTree(json);
-        } catch (Exception e) {
-            throw new RuntimeException("TMDb 응답 파싱 실패: " + e.getMessage(), e);
-        }
+    /** OkHttpClient 인스턴스를 반환합니다. */
+    public static OkHttpClient getClient() {
+        return client;
     }
 
-    /** 상세 + 부가 리소스를 한 번에 가져온다 */
-    public JsonNode fetchMovieBundle(long movieId, Locale locale) {
-        return callGet(buildMovieDetailUri(movieId, locale));
+    /**
+     * TMDB에서 주는 파일 경로(file_path)만으로는 이미지가 표시되지 않기 때문에,
+     * IMAGE_BASE_URL + filePath 형태로 전체 URL을 구성합니다.
+     */
+    public static String getImageUrl(String filePath) {
+        return (filePath != null && !filePath.isEmpty()) ? IMAGE_BASE_URL + filePath : null;
     }
 
-    /*  🔍  실시간 검색  -------------------------------------------------- */
-    public List<MovieSearchResultDTO> searchMovies(String keyword) {
-
-        URI uri = UriComponentsBuilder
-                .fromUriString("https://api.themoviedb.org/3/search/movie")
-                .queryParam("api_key", apiKey)
-                .queryParam("query", keyword)
-                .queryParam("language", "ko-KR")
-                .build()
-                .toUri();
-
-        JsonNode root = callGet(uri);
-
-        return StreamSupport.stream(root.path("results").spliterator(), false)
-                .map(r -> MovieSearchResultDTO.builder()
-                        .tmdbId(r.path("id").asLong())
-                        .title(r.path("title").asText())
-                        .posterPath(r.path("poster_path").asText(null))
-                        .releaseDate(r.path("release_date").asText(null))
-                        .popularity(r.path("popularity").asDouble())
-                        .build())
-                .toList();
+    /**
+     * endpoint 문자열 뒤에 언어 파라미터 `?language=ko-KR` 또는 `&language=ko-KR`를 붙여 줍니다.
+     */
+    public static String withLanguage(String path) {
+        return path.contains("?")
+                ? path + "&language=" + LANGUAGE
+                : path + "?language=" + LANGUAGE;
     }
 
-    /*  🔥  인기 영화 페이지별 조회  -------------------------------------- */
-    public List<MovieSearchResultDTO> fetchPopularMovies(int page) {
-
-        URI uri = UriComponentsBuilder
-                .fromUriString("https://api.themoviedb.org/3/movie/popular")
-                .queryParam("api_key", apiKey)
-                .queryParam("language", "ko-KR")
-                .queryParam("page", page)
-                .build()
-                .toUri();
-
-        JsonNode root = callGet(uri);
-
-        return StreamSupport.stream(root.path("results").spliterator(), false)
-                .map(r -> MovieSearchResultDTO.builder()
-                        .tmdbId(r.path("id").asLong())
-                        .title(r.path("title").asText())
-                        .posterPath(r.path("poster_path").asText(null))
-                        .releaseDate(r.path("release_date").asText(null))
-                        .popularity(r.path("popularity").asDouble())
-                        .build())
-                .toList();
+    /**
+     * endpoint 문자열 뒤에 언어 + 지역 파라미터(`?language=ko-KR&region=KR` 또는 `&language=ko-KR&region=KR`)를 붙여 줍니다.
+     */
+    public static String withLanguageAndRegion(String path) {
+        return path.contains("?")
+                ? path + "&language=" + LANGUAGE + "&region=" + REGION
+                : path + "?language=" + LANGUAGE + "&region=" + REGION;
     }
-
 }
