@@ -355,4 +355,125 @@ public class MovieService {
 
         return dto;
     }
+    /**
+     * DB에 저장된 모든 영화를 voteCount(투표 수) 기준 내림차순(인기순)으로 페이징 조회합니다.
+     *
+     * @param page  요청 페이지 번호 (0부터 시작)
+     * @param size  페이지 크기 (한 페이지당 반환할 영화 수)
+     * @return      voteCount 기준 내림차순으로 정렬된 Page<MovieDB>
+     */
+    public Page<MovieDB> findAllPopular(int page, int size) {
+        // PageRequest.of(page, size, Sort.by("voteCount").descending())로 정렬
+        return movieRepository.findAll(
+                PageRequest.of(page, size, Sort.by("voteCount").descending())
+        );
+    }
+    /**
+     * TMDB API에서 인기 영화 리스트를 호출하여 SearchResultDTO 리스트로 반환합니다.
+     *
+     * @param page TMDB 인기 영화 페이지 (1부터 시작; null 또는 1 미만일 경우 자동으로 1 처리)
+     * @return 인기 영화 목록 (한 페이지당 최대 20개)
+     * @throws IOException 네트워크/파싱 예외 발생 시
+     */
+    public List<SearchResultDTO> getPopularFromApi(Integer page) throws IOException {
+        if (page == null || page < 1) {
+            page = 1;
+        }
+
+        // 1) TMDB 인기 영화 엔드포인트: /movie/popular
+        //    언어: 한국어(ko-KR), 지역: KR(한국)
+        String endpoint = TmdbApiUtil.withLanguageAndRegion("/movie/popular") + "&page=" + page;
+        // 예: "/movie/popular?language=ko-KR&region=KR&page=1"
+
+        Request request = TmdbApiUtil.buildRequest(endpoint);
+        try (Response response = TmdbApiUtil.getClient().newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                // 4xx/5xx 응답이 왔을 때 예외 처리
+                throw new IOException("TMDB 인기 영화 API 호출 실패: status=" + response.code());
+            }
+
+            String body = response.body().string();
+            JsonObject root = JsonParser.parseString(body).getAsJsonObject();
+            JsonArray results = root.getAsJsonArray("results");
+
+            List<SearchResultDTO> list = new ArrayList<>();
+            if (results != null) {
+                for (JsonElement elem : results) {
+                    JsonObject obj = elem.getAsJsonObject();
+                    Long id = obj.get("id").getAsLong();
+                    String title = obj.get("title").getAsString();
+                    String releaseDate = obj.has("release_date") && !obj.get("release_date").isJsonNull()
+                            ? obj.get("release_date").getAsString()
+                            : null;
+                    String posterPath = obj.has("poster_path") && !obj.get("poster_path").isJsonNull()
+                            ? obj.get("poster_path").getAsString()
+                            : null;
+                    Double voteAverage = obj.has("vote_average") && !obj.get("vote_average").isJsonNull()
+                            ? obj.get("vote_average").getAsDouble()
+                            : null;
+
+                    list.add(new SearchResultDTO(id, title, releaseDate, posterPath, voteAverage));
+                }
+            }
+            return list;
+        }
+    }
+    /**
+     * TMDB API를 이용해 특정 장르(genreId) 기준으로 인기순(인기도 내림차순) 영화 목록을 가져옵니다.
+     *
+     * @param genreId TMDB 장르 ID (예: 28=액션, 12=어드벤처, 35=코미디 등)
+     * @param page    결과 페이지 번호 (1부터 시작; null 또는 1 미만일 경우 1 처리)
+     * @return        SearchResultDTO 리스트 (한 페이지 당 최대 20개)
+     * @throws IOException 호출 또는 JSON 파싱 실패 시
+     */
+    public List<SearchResultDTO> getPopularByGenreFromApi(Long genreId, Integer page) throws IOException {
+        if (page == null || page < 1) {
+            page = 1;
+        }
+        if (genreId == null) {
+            throw new IllegalArgumentException("genreId는 필수입니다.");
+        }
+
+        // 1) Discover API 엔드포인트 조립
+        //    - with_genres=genreId
+        //    - sort_by=popularity.desc (인기도 기준 내림차순)
+        //    - language=ko-KR
+        //    - page={page}
+        String endpoint = "/discover/movie"
+                + "?with_genres=" + genreId
+                + "&sort_by=popularity.desc"
+                + "&language=ko-KR"
+                + "&page=" + page;
+
+        Request request = TmdbApiUtil.buildRequest(endpoint);
+        try (Response response = TmdbApiUtil.getClient().newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("TMDB 장르별 인기 API 호출 실패: status=" + response.code());
+            }
+            String body = response.body().string();
+            JsonObject root = JsonParser.parseString(body).getAsJsonObject();
+            JsonArray results = root.getAsJsonArray("results");
+
+            List<SearchResultDTO> list = new ArrayList<>();
+            if (results != null) {
+                for (JsonElement elem : results) {
+                    JsonObject obj = elem.getAsJsonObject();
+                    Long id = obj.get("id").getAsLong();
+                    String title = obj.get("title").getAsString();
+                    String releaseDate = obj.has("release_date") && !obj.get("release_date").isJsonNull()
+                            ? obj.get("release_date").getAsString()
+                            : null;
+                    String posterPath = obj.has("poster_path") && !obj.get("poster_path").isJsonNull()
+                            ? obj.get("poster_path").getAsString()
+                            : null;
+                    Double voteAverage = obj.has("vote_average") && !obj.get("vote_average").isJsonNull()
+                            ? obj.get("vote_average").getAsDouble()
+                            : null;
+
+                    list.add(new SearchResultDTO(id, title, releaseDate, posterPath, voteAverage));
+                }
+            }
+            return list;
+        }
+    }
 }
