@@ -4,11 +4,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.dfpl.lecture.db.backend.dto.ReviewRequest;
 import org.dfpl.lecture.db.backend.dto.ReviewResponse;
-import org.dfpl.lecture.db.backend.entity.MovieDB;
 import org.dfpl.lecture.db.backend.entity.Review;
 import org.dfpl.lecture.db.backend.entity.User;
 
-import org.dfpl.lecture.db.backend.repository.MovieRepository;
 import org.dfpl.lecture.db.backend.repository.ReviewRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

@@ -1,25 +1,26 @@
 package org.dfpl.lecture.db.backend.dto;
 
-import lombok.*;
-
+import lombok.Data;
 import java.util.List;
 
-@Getter @Builder @AllArgsConstructor
+@Data
 public class MovieDetailDTO {
-
     private Long id;
+
     private String title;
+    private String originalTitle;
     private String overview;
-    private String releaseDate;
-    private Integer runtime;                 // 분 단위
+    private String releaseYear;
+    private String country;
+    private Integer runtime;
     private List<String> genres;
 
-    private String posterPath;               // /w500/....jpg
-    private String backdropPath;
+    private Double voteAverage;     // TMDB 기준 (10점 만점)
+    private Integer voteCount;
 
-    /* 인물 & 미디어 */
-    private List<CastDTO> casts;             // 상위 10명
-    private List<CastDTO> directors;         // 감독(들)
-    private List<ImageDTO> gallery;          // 백드롭 10장
-    private List<VideoDTO> videos;           // 예고편 etc.
+    private PersonDTO director;
+    private List<CastDTO> cast;
+
+    private List<ImageDTO> galleryImages;
+    private List<VideoDTO> trailers;
 }
