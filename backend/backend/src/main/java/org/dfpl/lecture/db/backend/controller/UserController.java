@@ -3,6 +3,7 @@ package org.dfpl.lecture.db.backend.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.dfpl.lecture.db.backend.dto.FavoriteMovieDTO;
 import org.dfpl.lecture.db.backend.dto.MyPageDTO;
 import org.dfpl.lecture.db.backend.dto.ReviewResponse;
 import org.dfpl.lecture.db.backend.entity.Favorite;

@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -157,5 +159,200 @@ public class MovieService {
         return movieRepository.findByGenres_IdOrderByVoteCountDesc(
                 genreId, PageRequest.of(page, size, Sort.by("voteCount").descending())
         );
+    }
+
+    /**
+     * TMDB /search/movie API 호출 → 결과를 SearchResultDTO 리스트로 반환
+     *
+     * @param query 검색어 (예: "인셉션")
+     * @param page  TMDB 검색 페이지 (1부터 시작); null일 경우 기본 1 사용
+     */
+    public List<SearchResultDTO> searchMovies(String query, Integer page) throws IOException {
+        if (page == null || page < 1) {
+            page = 1;
+        }
+        // 1) 검색어를 URL 인코딩
+        String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+
+        // 2) TMDB 검색 API endpoint 조립
+        // 예: "/search/movie?query=인셉션&include_adult=false&language=ko-KR&page=1"
+        String endpoint = "/search/movie"
+                + "?query=" + encodedQuery
+                + "&include_adult=false"
+                + "&language=ko-KR"
+                + "&page=" + page;
+
+        // 3) TMDB 호출
+        Request request = TmdbApiUtil.buildRequest(endpoint);
+        try (Response response = TmdbApiUtil.getClient().newCall(request).execute()) {
+            String body = response.body().string();
+            JsonObject root = JsonParser.parseString(body).getAsJsonObject();
+
+            // 4) "results" 배열 파싱
+            JsonArray results = root.getAsJsonArray("results");
+            List<SearchResultDTO> list = new ArrayList<>();
+
+            if (results != null) {
+                for (JsonElement elem : results) {
+                    JsonObject obj = elem.getAsJsonObject();
+                    Long id = obj.get("id").getAsLong();
+                    String title = obj.get("title").getAsString();
+                    String releaseDate = obj.has("release_date") && !obj.get("release_date").isJsonNull()
+                            ? obj.get("release_date").getAsString()
+                            : null;
+                    String posterPath = obj.has("poster_path") && !obj.get("poster_path").isJsonNull()
+                            ? obj.get("poster_path").getAsString()
+                            : null;
+                    Double voteAverage = obj.has("vote_average") && !obj.get("vote_average").isJsonNull()
+                            ? obj.get("vote_average").getAsDouble()
+                            : null;
+
+                    list.add(new SearchResultDTO(id, title, releaseDate, posterPath, voteAverage));
+                }
+            }
+            return list;
+        }
+    }
+
+    /**
+     * TMDB에서 영화 세부 정보를 조회하여 MovieDetailDTO로 반환합니다.
+     * 저장하지 않고, 바로 TMDB에서 읽어서 DTO만 만듭니다.
+     */
+    public MovieDetailDTO getMovieDetail(Long movieId) throws IOException {
+        MovieDetailDTO dto = new MovieDetailDTO();
+        dto.setId(movieId);
+
+        // 1) 기본 정보 (/movie/{id}?language=ko-KR)
+        JsonObject movieObj = fetchJson(TmdbApiUtil.withLanguage("/movie/" + movieId));
+        dto.setTitle(movieObj.get("title").getAsString());
+        dto.setOriginalTitle(movieObj.get("original_title").getAsString());
+        dto.setOverview(movieObj.get("overview").getAsString());
+
+        // release_date 예: "2025-06-03" → 연도만 잘라서 사용
+        String releaseDate = movieObj.get("release_date").getAsString();
+        dto.setReleaseYear(releaseDate.length() >= 4 ? releaseDate.substring(0, 4) : releaseDate);
+
+        // production_countries 배열 중 첫 번째 항목 name
+        JsonArray countries = movieObj.getAsJsonArray("production_countries");
+        if (countries != null && countries.size() > 0) {
+            dto.setCountry(countries.get(0).getAsJsonObject().get("name").getAsString());
+        }
+
+        // runtime (Integer)
+        if (!movieObj.get("runtime").isJsonNull()) {
+            dto.setRuntime(movieObj.get("runtime").getAsInt());
+        }
+
+        // TMDB 평점 + 투표 수
+        dto.setVoteAverage(movieObj.get("vote_average").getAsDouble());
+        dto.setVoteCount(movieObj.get("vote_count").getAsInt());
+
+        // 장르 리스트 (genres 배열에서 name만 추출)
+        JsonArray genresArr = movieObj.getAsJsonArray("genres");
+        List<String> genreList = new ArrayList<>();
+        if (genresArr != null) {
+            for (JsonElement g : genresArr) {
+                genreList.add(g.getAsJsonObject().get("name").getAsString());
+            }
+        }
+        dto.setGenres(genreList);
+
+        // 2) 출연진 & 감독 (/movie/{id}/credits?language=ko-KR)
+        JsonObject creditsObj = fetchJson(TmdbApiUtil.withLanguage("/movie/" + movieId + "/credits"));
+        JsonArray castArr = creditsObj.getAsJsonArray("cast");
+        JsonArray crewArr = creditsObj.getAsJsonArray("crew");
+
+        // – 배우 리스트
+        List<CastDTO> castList = new ArrayList<>();
+        if (castArr != null) {
+            int limit = Math.min(castArr.size(), 10);
+            for (int i = 0; i < limit; i++) {
+                JsonObject castItem = castArr.get(i).getAsJsonObject();
+                CastDTO c = new CastDTO();
+                c.setName(castItem.get("name").getAsString());
+                c.setCharacter(castItem.get("character").getAsString());
+
+                JsonElement profilePathElem = castItem.get("profile_path");
+                if (!profilePathElem.isJsonNull()) {
+                    String path = profilePathElem.getAsString();
+                    c.setProfileImageUrl(TmdbApiUtil.getImageUrl(path));
+                }
+                castList.add(c);
+            }
+        }
+        dto.setCast(castList);
+
+        // – 감독 (crew 배열 중 job=="Director"인 요소)
+        if (crewArr != null) {
+            for (JsonElement e : crewArr) {
+                JsonObject crewItem = e.getAsJsonObject();
+                if ("Director".equals(crewItem.get("job").getAsString())) {
+                    PersonDTO directorDto = new PersonDTO();
+                    directorDto.setName(crewItem.get("name").getAsString());
+
+                    JsonElement dirProfilePath = crewItem.get("profile_path");
+                    if (!dirProfilePath.isJsonNull()) {
+                        directorDto.setProfileImageUrl(TmdbApiUtil.getImageUrl(dirProfilePath.getAsString()));
+                    }
+                    dto.setDirector(directorDto);
+                    break;
+                }
+            }
+        }
+
+        // 3) 이미지 (갤러리) (/movie/{id}/images)
+        JsonObject imagesObj = fetchJson("/movie/" + movieId + "/images");
+        List<ImageDTO> gallery = new ArrayList<>();
+
+        JsonArray backdrops = imagesObj.getAsJsonArray("backdrops");
+        if (backdrops != null) {
+            for (JsonElement imgElem : backdrops) {
+                JsonObject imgObj = imgElem.getAsJsonObject();
+                String filePath = imgObj.get("file_path").getAsString();
+
+                ImageDTO imgDto = new ImageDTO();
+                imgDto.setType("backdrop");
+                imgDto.setUrl(TmdbApiUtil.getImageUrl(filePath));
+                gallery.add(imgDto);
+            }
+        }
+
+        JsonArray posters = imagesObj.getAsJsonArray("posters");
+        if (posters != null) {
+            for (JsonElement imgElem : posters) {
+                JsonObject imgObj = imgElem.getAsJsonObject();
+                String filePath = imgObj.get("file_path").getAsString();
+
+                ImageDTO imgDto = new ImageDTO();
+                imgDto.setType("poster");
+                imgDto.setUrl(TmdbApiUtil.getImageUrl(filePath));
+                gallery.add(imgDto);
+            }
+        }
+        dto.setGalleryImages(gallery);
+
+        // 4) 예고편/트레일러 (/movie/{id}/videos?language=ko-KR)
+        JsonObject videosObj = fetchJson(TmdbApiUtil.withLanguage("/movie/" + movieId + "/videos"));
+        List<VideoDTO> videoList = new ArrayList<>();
+
+        JsonArray videoArr = videosObj.getAsJsonArray("results");
+        if (videoArr != null) {
+            for (JsonElement e : videoArr) {
+                JsonObject vidObj = e.getAsJsonObject();
+                if ("YouTube".equals(vidObj.get("site").getAsString())) {
+                    String type = vidObj.get("type").getAsString();
+                    if ("Trailer".equals(type) || "Teaser".equals(type)) {
+                        VideoDTO vDto = new VideoDTO();
+                        vDto.setName(vidObj.get("name").getAsString());
+                        String key = vidObj.get("key").getAsString();
+                        vDto.setUrl("https://www.youtube.com/watch?v=" + key);
+                        videoList.add(vDto);
+                    }
+                }
+            }
+        }
+        dto.setTrailers(videoList);
+
+        return dto;
     }
 }

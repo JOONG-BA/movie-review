@@ -2,9 +2,12 @@ package org.dfpl.lecture.db.backend.service;
 
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.dfpl.lecture.db.backend.dto.FavoriteMovieDTO;
 import org.dfpl.lecture.db.backend.entity.Favorite;
+import org.dfpl.lecture.db.backend.entity.MovieDB;
 import org.dfpl.lecture.db.backend.entity.User;
 import org.dfpl.lecture.db.backend.repository.FavoriteRepository;
+import org.dfpl.lecture.db.backend.repository.MovieRepository;
 import org.dfpl.lecture.db.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
