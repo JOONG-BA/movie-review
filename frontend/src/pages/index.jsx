@@ -223,13 +223,12 @@ export const dummyMovies = [
     }
 ];
 
-
 export default function Home() {
     return (
         <div className="max-w-[1320px] w-full pt-10 m-auto">
-            <MovieSlide title="최신 리뷰" movies={dummyMovies} />
-            <MovieSlide title="평점 높은 영화" movies={dummyMovies} />
-            <MovieSlide title="액션 영화" movies={dummyMovies} />
+            <MovieSlide title="최신 리뷰" />
+            <MovieSlide title="평점 높은 영화" />
+            <MovieSlide title="액션 영화" />
         </div>
     );
 }

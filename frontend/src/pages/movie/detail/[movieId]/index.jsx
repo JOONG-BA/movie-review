@@ -7,33 +7,29 @@ import MovieCredits from "@/components/moive/detail/MovieCredits.jsx";
 import MovieComments from "@/components/moive/detail/MovieComments.jsx";
 import MovieGallery from "@/components/moive/detail/MovieGallery.jsx";
 import MovieVideos from "@/components/moive/detail/MovieVideos.jsx";
+import {getMovieDetail} from "@/pages/api/movieApi.js";
 
 export default function MovieDetailPage() {
     const { movieId } = useParams();
     const [movie, setMovie] = useState(null);
 
-    /*
+
     useEffect(() => {
-        fetch(`/api/movie/${movieId}`)  // 실제 API URL로 대체
-            .then((res) => res.json())
-            .then((data) => setMovie(data))
-            .catch((err) => {
-                console.error("영화 데이터를 불러오지 못했습니다:", err);
-            });
-    }, [movieId]);
+        getMovieDetail(movieId)
+            .then(res => { setMovie(res); console.log(res); })
+            .catch(console.error);
+    }, []);
 
     if (!movie) return <div>로딩 중...</div>;
-    */
-
 
     return (
         <div className="mb-10">
-            <MovieDetailBanner movie={dummyMovies[0]} />
-            <MovieDetailInfo movie={dummyMovies[0]} />
-            <MovieCredits casts={dummyMovies[0].casts} directors={dummyMovies[0].directors}  />
+            <MovieDetailBanner movie={movie} />
+            <MovieDetailInfo movie={movie} />
+            <MovieCredits casts={movie.cast} directors={Array(movie.director)}  />
             <MovieComments />
-            <MovieGallery images={dummyMovies[0].gallery} />
-            <MovieVideos videos={dummyMovies[0].videos} />
+            <MovieGallery images={movie.galleryImages} />
+            <MovieVideos videos={movie.trailers} />
         </div>
     );
 }
