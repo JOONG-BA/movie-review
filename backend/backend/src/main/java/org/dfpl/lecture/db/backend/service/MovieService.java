@@ -9,6 +9,7 @@ import org.dfpl.lecture.db.backend.entity.Genre;
 import org.dfpl.lecture.db.backend.entity.MovieDB;
 import org.dfpl.lecture.db.backend.repository.GenreRepository;
 import org.dfpl.lecture.db.backend.repository.MovieRepository;
+import org.dfpl.lecture.db.backend.util.GenreMappingUtil;
 import org.dfpl.lecture.db.backend.util.TmdbApiUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -155,10 +156,79 @@ public class MovieService {
      * 장르별 인기순 조회 예시:
      * PageRequest.of(page, size, Sort.by("voteCount").descending()) 같이 Pageable로 넘겨주면 됩니다.
      */
-    public Page<MovieDB> findPopularByGenre(Long genreId, int page, int size) {
-        return movieRepository.findByGenres_IdOrderByVoteCountDesc(
-                genreId, PageRequest.of(page, size, Sort.by("voteCount").descending())
-        );
+    public List<MovieSummaryDTO> getPopularMovies(int page) throws IOException {
+        // 엔드포인트 구성
+        String endpoint = "/discover/movie"
+                + "?sort_by=popularity.desc"
+                + "&language=ko-KR"
+                + "&page=" + page;
+
+        JsonObject root = fetchJson(endpoint);
+        return parseMovieSummaryList(root.getAsJsonArray("results"));
+    }
+
+    /**
+     * (2) 장르별 인기순 목록을 가져온다.
+     *     /discover/movie?with_genres={genreId}&sort_by=popularity.desc&language=ko-KR&page={page}
+     */
+    public List<MovieSummaryDTO> getPopularByGenre(int genreId, int page) throws IOException {
+        String endpoint = "/discover/movie"
+                + "?with_genres=" + genreId
+                + "&sort_by=popularity.desc"
+                + "&language=ko-KR"
+                + "&page=" + page;
+
+        JsonObject root = fetchJson(endpoint);
+        return parseMovieSummaryList(root.getAsJsonArray("results"));
+    }
+
+    /**
+     * results 배열(JsonArray)을 받아서 MovieSummaryDTO 리스트로 변환하는 헬퍼
+     */
+    private List<MovieSummaryDTO> parseMovieSummaryList(JsonArray results) {
+        List<MovieSummaryDTO> list = new ArrayList<>();
+        if (results == null) return list;
+
+        for (JsonElement elem : results) {
+            JsonObject obj = elem.getAsJsonObject();
+            MovieSummaryDTO dto = new MovieSummaryDTO();
+
+            dto.setId(obj.get("id").getAsLong());
+            dto.setTitle(obj.get("title").getAsString());
+            dto.setOriginalTitle(obj.get("original_title").getAsString());
+            dto.setOverview(obj.get("overview").getAsString());
+            dto.setReleaseDate(obj.get("release_date").getAsString());
+            dto.setVoteAverage(obj.get("vote_average").getAsDouble());
+            dto.setVoteCount(obj.get("vote_count").getAsInt());
+
+            // poster_path → 풀 URL
+            if (obj.has("poster_path") && !obj.get("poster_path").isJsonNull()) {
+                String posterPath = obj.get("poster_path").getAsString();
+                dto.setPosterUrl(TmdbApiUtil.getPosterImageUrl(posterPath));
+            }
+            // backdrop_path → 풀 URL (필요 시)
+            if (obj.has("backdrop_path") && !obj.get("backdrop_path").isJsonNull()) {
+                String backdropPath = obj.get("backdrop_path").getAsString();
+                dto.setBackdropUrl(TmdbApiUtil.getBackdropImageUrl(backdropPath));
+            }
+
+            // genre_ids → List<GenreDTO> 매핑 (앞서 정의한 유틸 사용)
+            List<GenreDTO> genreList = new ArrayList<>();
+            if (obj.has("genre_ids") && obj.get("genre_ids").isJsonArray()) {
+                JsonArray ids = obj.getAsJsonArray("genre_ids");
+                for (JsonElement idElem : ids) {
+                    int gid = idElem.getAsInt();
+                    String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(gid);
+                    if (name != null) {
+                        genreList.add(new GenreDTO(gid, name));
+                    }
+                }
+            }
+            dto.setGenres(genreList);
+
+            list.add(dto);
+        }
+        return list;
     }
 
     /**
@@ -167,51 +237,65 @@ public class MovieService {
      * @param query 검색어 (예: "인셉션")
      * @param page  TMDB 검색 페이지 (1부터 시작); null일 경우 기본 1 사용
      */
-    public List<SearchResultDTO> searchMovies(String query, Integer page) throws IOException {
-        if (page == null || page < 1) {
-            page = 1;
-        }
-        // 1) 검색어를 URL 인코딩
-        String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+    public List<MovieSummaryDTO> searchMovies(String query, int page) throws IOException {
+        // 1) 검색어 URL 인코딩
+        String encoded = URLEncoder.encode(query, StandardCharsets.UTF_8.toString());
 
-        // 2) TMDB 검색 API endpoint 조립
-        // 예: "/search/movie?query=인셉션&include_adult=false&language=ko-KR&page=1"
+        // 2) /search/movie 엔드포인트 구성 (language=ko-KR 포함)
         String endpoint = "/search/movie"
-                + "?query=" + encodedQuery
-                + "&include_adult=false"
-                + "&language=ko-KR"
-                + "&page=" + page;
+                + "?query=" + encoded
+                + "&page=" + page
+                + "&language=ko-KR";
 
         // 3) TMDB 호출
-        Request request = TmdbApiUtil.buildRequest(endpoint);
-        try (Response response = TmdbApiUtil.getClient().newCall(request).execute()) {
-            String body = response.body().string();
-            JsonObject root = JsonParser.parseString(body).getAsJsonObject();
+        JsonObject root = fetchJson(endpoint);
+        JsonArray results = root.getAsJsonArray("results");
 
-            // 4) "results" 배열 파싱
-            JsonArray results = root.getAsJsonArray("results");
-            List<SearchResultDTO> list = new ArrayList<>();
+        List<MovieSummaryDTO> list = new ArrayList<>();
+        if (results != null) {
+            for (JsonElement elem : results) {
+                JsonObject obj = elem.getAsJsonObject();
 
-            if (results != null) {
-                for (JsonElement elem : results) {
-                    JsonObject obj = elem.getAsJsonObject();
-                    Long id = obj.get("id").getAsLong();
-                    String title = obj.get("title").getAsString();
-                    String releaseDate = obj.has("release_date") && !obj.get("release_date").isJsonNull()
-                            ? obj.get("release_date").getAsString()
-                            : null;
-                    String posterPath = obj.has("poster_path") && !obj.get("poster_path").isJsonNull()
-                            ? obj.get("poster_path").getAsString()
-                            : null;
-                    Double voteAverage = obj.has("vote_average") && !obj.get("vote_average").isJsonNull()
-                            ? obj.get("vote_average").getAsDouble()
-                            : null;
+                MovieSummaryDTO dto = new MovieSummaryDTO();
+                dto.setId(obj.get("id").getAsLong());
+                dto.setTitle(obj.get("title").getAsString());
+                dto.setOriginalTitle(obj.get("original_title").getAsString());
+                dto.setOverview(obj.get("overview").getAsString());
+                dto.setReleaseDate(obj.get("release_date").getAsString());
+                dto.setVoteAverage(obj.get("vote_average").getAsDouble());
+                dto.setVoteCount(obj.get("vote_count").getAsInt());
 
-                    list.add(new SearchResultDTO(id, title, releaseDate, posterPath, voteAverage));
+                // poster_path → full URL
+                if (obj.has("poster_path") && !obj.get("poster_path").isJsonNull()) {
+                    String posterPath = obj.get("poster_path").getAsString();
+                    dto.setPosterUrl(TmdbApiUtil.getPosterImageUrl(posterPath));
                 }
+
+                // backdrop_path → full URL (필요 시)
+                if (obj.has("backdrop_path") && !obj.get("backdrop_path").isJsonNull()) {
+                    String backdropPath = obj.get("backdrop_path").getAsString();
+                    dto.setBackdropUrl(TmdbApiUtil.getBackdropImageUrl(backdropPath));
+                }
+
+                // 4) genre_ids 배열 → List<GenreDTO> 매핑
+                List<GenreDTO> genreList = new ArrayList<>();
+                if (obj.has("genre_ids") && obj.get("genre_ids").isJsonArray()) {
+                    JsonArray genreIdsArr = obj.getAsJsonArray("genre_ids");
+                    for (JsonElement idElem : genreIdsArr) {
+                        int genreId = idElem.getAsInt();
+                        String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(genreId);
+                        if (name != null) {
+                            genreList.add(new GenreDTO(genreId, name));
+                        }
+                    }
+                }
+                dto.setGenres(genreList);
+
+                list.add(dto);
             }
-            return list;
         }
+
+        return list;
     }
 
     /**
@@ -231,6 +315,20 @@ public class MovieService {
         // release_date 예: "2025-06-03" → 연도만 잘라서 사용
         String releaseDate = movieObj.get("release_date").getAsString();
         dto.setReleaseYear(releaseDate.length() >= 4 ? releaseDate.substring(0, 4) : releaseDate);
+
+
+        String posterPath = null;
+        if (movieObj.has("poster_path") && !movieObj.get("poster_path").isJsonNull()) {
+            posterPath = movieObj.get("poster_path").getAsString();
+        }
+
+        String backdropPath = null;
+        if (movieObj.has("backdrop_path") && !movieObj.get("backdrop_path").isJsonNull()) {
+            backdropPath = movieObj.get("backdrop_path").getAsString();
+        }
+
+        dto.setPosterUrl(TmdbApiUtil.getPosterImageUrl(posterPath));
+        dto.setBackdropUrl(TmdbApiUtil.getBackdropImageUrl(backdropPath));
 
         // production_countries 배열 중 첫 번째 항목 name
         JsonArray countries = movieObj.getAsJsonArray("production_countries");
@@ -275,7 +373,7 @@ public class MovieService {
                 JsonElement profilePathElem = castItem.get("profile_path");
                 if (!profilePathElem.isJsonNull()) {
                     String path = profilePathElem.getAsString();
-                    c.setProfileImageUrl(TmdbApiUtil.getImageUrl(path));
+                    c.setProfileImageUrl(TmdbApiUtil.getCreditsImageUrl(path));
                 }
                 castList.add(c);
             }
@@ -292,7 +390,7 @@ public class MovieService {
 
                     JsonElement dirProfilePath = crewItem.get("profile_path");
                     if (!dirProfilePath.isJsonNull()) {
-                        directorDto.setProfileImageUrl(TmdbApiUtil.getImageUrl(dirProfilePath.getAsString()));
+                        directorDto.setProfileImageUrl(TmdbApiUtil.getCreditsImageUrl(dirProfilePath.getAsString()));
                     }
                     dto.setDirector(directorDto);
                     break;
@@ -301,35 +399,24 @@ public class MovieService {
         }
 
         // 3) 이미지 (갤러리) (/movie/{id}/images)
-        JsonObject imagesObj = fetchJson("/movie/" + movieId + "/images");
+        JsonObject imagesObj = fetchJson("/movie/" + movieId + "/images?include_image_language=null");
         List<ImageDTO> gallery = new ArrayList<>();
 
         JsonArray backdrops = imagesObj.getAsJsonArray("backdrops");
+
         if (backdrops != null) {
-            for (JsonElement imgElem : backdrops) {
-                JsonObject imgObj = imgElem.getAsJsonObject();
+            // JsonArray backdrops의 크기만큼 반복하되, 인덱스가 10을 넘지 않도록 조건 추가
+            for (int i = 0; i < backdrops.size() && i < 10; i++) {
+                JsonObject imgObj = backdrops.get(i).getAsJsonObject();
                 String filePath = imgObj.get("file_path").getAsString();
 
                 ImageDTO imgDto = new ImageDTO();
-                imgDto.setType("backdrop");
-                imgDto.setUrl(TmdbApiUtil.getImageUrl(filePath));
-                gallery.add(imgDto);
-            }
-        }
-
-        JsonArray posters = imagesObj.getAsJsonArray("posters");
-        if (posters != null) {
-            for (JsonElement imgElem : posters) {
-                JsonObject imgObj = imgElem.getAsJsonObject();
-                String filePath = imgObj.get("file_path").getAsString();
-
-                ImageDTO imgDto = new ImageDTO();
-                imgDto.setType("poster");
                 imgDto.setUrl(TmdbApiUtil.getImageUrl(filePath));
                 gallery.add(imgDto);
             }
         }
         dto.setGalleryImages(gallery);
+
 
         // 4) 예고편/트레일러 (/movie/{id}/videos?language=ko-KR)
         JsonObject videosObj = fetchJson(TmdbApiUtil.withLanguage("/movie/" + movieId + "/videos"));

@@ -25,13 +25,26 @@ public class MovieDetailDTO {
     // private Double ourRatingAverage;
     // private Integer ourRatingCount;
 
+    //poster backdrop
+
+    private String backdrop_path;
+    private String poster_path;
+
     // 크루 & 캐스트
     private PersonDTO director;      // 감독 한 명
     private List<CastDTO> cast;      // 배우 리스트
 
-    // 갤러리 (포스터 + 백드롭 이미지 통합)
+    // 갤러리
     private List<ImageDTO> galleryImages;
 
     // 예고편 / 트레일러
     private List<VideoDTO> trailers;
+
+    public void setPosterUrl(String posterImageUrl) {
+        this.poster_path = posterImageUrl;
+    }
+
+    public void setBackdropUrl(String backdropImageUrl) {
+        this.backdrop_path = backdropImageUrl;
+    }
 }
