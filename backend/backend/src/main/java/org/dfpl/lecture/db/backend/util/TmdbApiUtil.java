@@ -6,7 +6,10 @@ import okhttp3.Request;
 public class TmdbApiUtil {
 
     private static final String API_BASE_URL = "https://api.themoviedb.org/3";
-    private static final String IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
+    private static final String IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w780";
+    private static final String CREDITS_BASE_URL = "https://image.tmdb.org/t/p/w500";
+    private static final String POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500";
+    private static final String BACKDROP_BASE_URL = "https://image.tmdb.org/t/p/w1280";
     // TODO: 직접 하드코딩하기보다는 application.properties나 환경변수로 옮겨 두는 것을 권장합니다.
     private static final String BEARER_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMjE3YmI3MzZiN2E5NzU1MzAyZGY4MzVkNTM3NzI0ZCIsIm5iZiI6MTc0ODAxODY3Mi44NzY5OTk5LCJzdWIiOiI2ODMwYTVmMGI4NTAwYzkwODVlYjI1NDYiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.GFi6vG9vKZkGbfF00fv0RAyzIcdILnP-EzfcAOeiEnM";
     private static final String LANGUAGE = "ko-KR";
@@ -38,6 +41,17 @@ public class TmdbApiUtil {
      */
     public static String getImageUrl(String filePath) {
         return (filePath != null && !filePath.isEmpty()) ? IMAGE_BASE_URL + filePath : null;
+    }
+
+    public static String getPosterImageUrl(String filePath) {
+        return (filePath != null && !filePath.isEmpty()) ? POSTER_BASE_URL + filePath : null;
+    }
+
+    public static String getBackdropImageUrl(String filePath) {
+        return (filePath != null && !filePath.isEmpty()) ? BACKDROP_BASE_URL + filePath : null;
+    }
+    public static String getCreditsImageUrl(String filePath) {
+        return (filePath != null && !filePath.isEmpty()) ? CREDITS_BASE_URL + filePath : null;
     }
 
     /**
