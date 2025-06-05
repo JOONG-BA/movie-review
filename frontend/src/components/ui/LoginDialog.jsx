@@ -3,13 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button.jsx"
 import { Input } from "@/components/ui/input.jsx"
 import { Label } from "@/components/ui/label.jsx"
-import { AuthContext } from "@/context/AuthContext.jsx" // ✅ 추가
+import { AuthContext } from "@/context/AuthContext.jsx"
 
 export function LoginDialog() {
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const { setIsLoggedIn } = useContext(AuthContext) // ✅ 전역 로그인 상태 제어
+  const { setIsLoggedIn } = useContext(AuthContext)
 
   const handleLogin = async () => {
     try {
@@ -29,7 +29,7 @@ export function LoginDialog() {
       }
 
       localStorage.setItem("token", data.token)
-      setIsLoggedIn(true) // ✅ 전역 로그인 상태 변경
+      setIsLoggedIn(true)
       alert("로그인 성공!")
       setOpen(false)
     } catch (err) {
@@ -39,42 +39,41 @@ export function LoginDialog() {
 
   return (
     <>
+      <Button id="open-login-btn" className="hidden" onClick={() => setOpen(true)}>
+        로그인
+      </Button>
+
       <Button className="rounded-sm border border-gray-500 hover:bg-gray-800 delay-3" onClick={() => setOpen(true)}>
         로그인
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-gray-900/95 text-white rounded-xl shadow-2xl backdrop-blur-md px-8 py-6 max-w-md">
+        <DialogContent className="bg-gray-900/95 text-white">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-center">로그인</DialogTitle>
+            <DialogTitle>로그인</DialogTitle>
           </DialogHeader>
 
-          <div className="grid gap-5 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">이메일</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">비밀번호</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
+          <Label>이메일</Label>
+          <Input value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Label>비밀번호</Label>
+          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
 
-          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={handleLogin}>
+          <Button className="mt-4" onClick={handleLogin}>
             로그인
           </Button>
+
+          <p className="text-sm mt-4 text-center">
+            아직 계정이 없으신가요?{' '}
+            <span
+              className="text-blue-400 cursor-pointer"
+              onClick={() => {
+                setOpen(false)
+                document.getElementById("open-signup-btn")?.click()
+              }}
+            >
+              회원가입
+            </span>
+          </p>
         </DialogContent>
       </Dialog>
     </>
