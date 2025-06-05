@@ -1,5 +1,6 @@
 package org.dfpl.lecture.db.backend.controller;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -131,6 +132,19 @@ public class UserController {
                     .badRequest()
                     .body("{ \"error\": \"" + e.getMessage() + "\" }");
         }
+    }
+
+    @GetMapping("/me/favorites/{movieId}/exists")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> isFavorite(
+            Authentication auth,
+            @PathVariable("movieId") Long movieId
+    ) {
+        User user = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("사용자 없음: " + auth.getName()));
+
+        boolean isFavorite = favoriteService.isFavorite(user, movieId);
+        return ResponseEntity.ok().body(Collections.singletonMap("isFavorite", isFavorite));
     }
 }
 

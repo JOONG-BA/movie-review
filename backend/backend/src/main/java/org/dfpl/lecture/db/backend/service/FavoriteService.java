@@ -76,4 +76,8 @@ public class FavoriteService {
     public List<Favorite> getFavoritesByUser(User user) {
         return favoriteRepository.findAllByUser(user);
     }
+
+    public boolean isFavorite(User user, Long movieId) {
+        return favoriteRepository.existsByUserAndMovieId(user, movieId);
+    }
 }

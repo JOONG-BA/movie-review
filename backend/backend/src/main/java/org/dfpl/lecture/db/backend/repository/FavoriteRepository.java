@@ -12,4 +12,6 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
     List<Favorite> findAllByUser(User user);
 
     Optional<Favorite> findByUserAndMovie(User user, MovieDB movie);
+
+    boolean existsByUserAndMovieId(User user, Long movieId);
 }
