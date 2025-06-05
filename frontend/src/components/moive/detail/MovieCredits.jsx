@@ -61,8 +61,8 @@ export default function CastAndCrew({ casts = [], directors = [] }) {
                                             <p className="font-semibold">{person.name}</p>
                                             <p className="text-gray-500 text-xs">
                                                 {person.type === "cast"
-                                                    ? person.role
-                                                        ? `출연 | ${person.role}`
+                                                    ? person.character
+                                                        ? `출연 | ${person.character}`
                                                         : "출연"
                                                     : "감독"}
                                             </p>

@@ -21,7 +21,7 @@ export default function MovieVideos({ videos = [] }) {
         initialSlide: 0,
         speed: 1000,
         arrows: true,
-        infinite: true,
+        infinite: false,
         nextArrow: <NextArrow />,
         prevArrow: <PrevArrow />,
         swipe: false,
@@ -34,6 +34,7 @@ export default function MovieVideos({ videos = [] }) {
                     slidesToScroll: 1,
                     swipe: true,
                     arrows: false,
+                    infinite: true,
                     centerPadding: "15%",
                 }
             }

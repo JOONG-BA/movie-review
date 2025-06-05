@@ -2,13 +2,12 @@ import RatingBar from "@/components/moive/detail/RatingBar.jsx";
 
 
 export const MovieDetailInfo = ({ movie }) => {
-    const lastItem = movie.galleryImages[movie.galleryImages.length - 1];
     return (
         <div className="bg-gray-50 pt-12 pb-16">
             <div className="container flex flex-col-reverse sm:flex-row flex-row m-auto">
                 {/*포스터*/}
                 <div className="w-full m-auto max-w-[280px] md:max-w-[240px] lg:max-w-[280px]">
-                    <img src={lastItem.url} alt={movie.title}/>
+                    <img src={movie.poster_path} alt={movie.title}/>
                 </div>
                 {/*영화상세정보*/}
                 <div className="w-full flex ml-0 sm:ml-8 flex-1 flex-col">

@@ -21,7 +21,7 @@ export default function MovieGallery({ images = [] }) {
         initialSlide: 0,
         speed: 1000,
         arrows: true,
-        infinite: true,
+        infinite: false,
         nextArrow: <NextArrow />,
         prevArrow: <PrevArrow />,
         swipe: false,
@@ -35,6 +35,7 @@ export default function MovieGallery({ images = [] }) {
                     swipe: true,
                     arrows: false,
                     centerPadding: "15%",
+                    infinite: true,
                 }
             }
         ],
