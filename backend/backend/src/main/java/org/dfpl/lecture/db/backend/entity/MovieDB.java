@@ -1,12 +1,11 @@
 package org.dfpl.lecture.db.backend.entity;
 
-import lombok.*;
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "movie")
+@Table(name = "movies_list")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,12 +25,11 @@ public class MovieDB {
     @Lob
     private String overview;
 
+    @Column(name = "popularity")
+    private Double popularity;
+
     @Column(name = "release_date")
-    private LocalDate releaseDate;
-
-    private String country;
-
-    private Integer runtime;
+    private String releaseDate;  // MovieSummaryDTO의 String 형식(예: "2021-10-01")
 
     @Column(name = "vote_average")
     private Double voteAverage;
@@ -39,16 +37,12 @@ public class MovieDB {
     @Column(name = "vote_count")
     private Integer voteCount;
 
-    @Column(name = "poster_path")
-    private String posterPath;
+    @Column(name = "poster_url")
+    private String posterUrl;    // MovieSummaryDTO의 full URL
 
-    @Column(name = "backdrop_path")
-    private String backdropPath;
+    @Column(name = "backdrop_url")
+    private String backdropUrl;  // MovieSummaryDTO의 full URL
 
-    /**
-     * Movie ↔ Genre 는 N:M 관계입니다.
-     * movie_genre 라는 조인 테이블을 사용하여 매핑합니다.
-     */
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "movie_genre",

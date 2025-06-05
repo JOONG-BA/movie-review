@@ -2,6 +2,9 @@ package org.dfpl.lecture.db.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.dfpl.lecture.db.backend.dto.GenreDTO;
+
+import java.util.List;
 
 @Entity
 @Table(name = "genre")
@@ -21,4 +24,7 @@ public class Genre {
 
     @Column(nullable = false, length = 100)
     private String name;
+
+    @ManyToMany(mappedBy = "genres", fetch = FetchType.LAZY)
+    private List<MovieDB> movies;
 }

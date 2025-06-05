@@ -68,23 +68,4 @@ public class MovieController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    /**
-     * TMDB API를 이용해 특정 장르(genreId) 기준으로 인기 영화 목록을 가져옵니다.
-     * GET /api/movies/popular/api/genre?genreId={genreId}&page={page}
-     *
-     * @param genreId TMDB 장르 ID (예: 28=액션, 35=코미디 등)
-     * @param page    페이지 번호 (1부터 시작; 기본값 1)
-     */
-    @GetMapping("/popular/genre/api")
-    public ResponseEntity<List<MovieSummaryDTO>> getPopularByGenre(
-            @RequestParam("genre") int genreId,
-            @RequestParam(value = "page", defaultValue = "1") int page
-    ) {
-        try {
-            List<MovieSummaryDTO> list = movieService.getPopularByGenre(genreId, page);
-            return ResponseEntity.ok(list);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 }

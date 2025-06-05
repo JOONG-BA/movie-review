@@ -38,7 +38,7 @@ public class FavoriteService {
                     return new FavoriteMovieDTO(
                             m.getId(),            // movieId
                             m.getTitle(),         // title
-                            m.getPosterPath()     // posterPath
+                            m.getPosterUrl()     // posterPath
                             // 필요하다면 추가 필드(getReleaseDate(), getVoteAverage() 등)도 넣으세요
                     );
                 })

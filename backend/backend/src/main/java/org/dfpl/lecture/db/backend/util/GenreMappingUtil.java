@@ -6,28 +6,28 @@ import java.util.Map;
 
 public class GenreMappingUtil {
     /** TMDB 장르 ID → 한글 이름 매핑 */
-    public static final Map<Integer, String> GENRE_ID_TO_NAME;
+    public static final Map<Long, String> GENRE_ID_TO_NAME;
     static {
-        Map<Integer, String> map = new HashMap<>();
-        map.put(28,   "액션");
-        map.put(12,   "모험");
-        map.put(16,   "애니메이션");
-        map.put(35,   "코미디");
-        map.put(80,   "범죄");
-        map.put(99,   "다큐멘터리");
-        map.put(18,   "드라마");
-        map.put(10751,"가족");
-        map.put(14,   "판타지");
-        map.put(36,   "역사");
-        map.put(27,   "공포");
-        map.put(10402,"음악");
-        map.put(9648, "미스터리");
-        map.put(10749,"로맨스");
-        map.put(878,  "SF");
-        map.put(10770,"TV 영화");
-        map.put(53,   "스릴러");
-        map.put(10752,"전쟁");
-        map.put(37,   "서부");
+        Map<Long, String> map = new HashMap<>();
+        map.put(28L,   "액션");
+        map.put(12L,   "모험");
+        map.put(16L,   "애니메이션");
+        map.put(35L,   "코미디");
+        map.put(80L,   "범죄");
+        map.put(99L,   "다큐멘터리");
+        map.put(18L,   "드라마");
+        map.put(10751L,"가족");
+        map.put(14L,   "판타지");
+        map.put(36L,   "역사");
+        map.put(27L,   "공포");
+        map.put(10402L,"음악");
+        map.put(9648L, "미스터리");
+        map.put(10749L,"로맨스");
+        map.put(878L,  "SF");
+        map.put(10770L,"TV 영화");
+        map.put(53L,   "스릴러");
+        map.put(10752L,"전쟁");
+        map.put(37L,   "서부");
         GENRE_ID_TO_NAME = Collections.unmodifiableMap(map);
     }
 
