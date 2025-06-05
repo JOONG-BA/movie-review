@@ -12,7 +12,7 @@ export const MovieDetailInfo = ({ movie }) => {
                 {/*영화상세정보*/}
                 <div className="w-full flex ml-0 sm:ml-8 flex-1 flex-col">
                     <section className="w-full">
-                        <RatingBar voteAverage={movie.voteAverage}></RatingBar>
+                        <RatingBar movieId={movie.id} voteAverage={movie.voteAverage}></RatingBar>
                     </section>
                     <section className="w-full mb-10 sm:mb-0 border-t border-t-gray-300">
                         <div className="text-left text-xs mt-6 text-gray-500">
