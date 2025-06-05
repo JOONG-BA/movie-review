@@ -1,8 +1,10 @@
 package org.dfpl.lecture.db.backend.controller;
 
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.dfpl.lecture.db.backend.dto.ReviewRequest;
+import org.dfpl.lecture.db.backend.dto.ReviewResponse;
 import org.dfpl.lecture.db.backend.entity.User;
 import org.dfpl.lecture.db.backend.repository.UserRepository;
 import org.dfpl.lecture.db.backend.service.ReviewService;
@@ -55,6 +57,14 @@ public class ReviewController {
                 .orElseThrow(() -> new UsernameNotFoundException(email));
         reviewService.delete(reviewId, currentUser);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/movies/{movieId}/reviews")
+    public ResponseEntity<List<ReviewResponse>> getReviewsByMovie(
+            @PathVariable("movieId") Long movieId
+    ) {
+        List<ReviewResponse> reviews = reviewService.findByMovieId(movieId);
+        return ResponseEntity.ok(reviews);
     }
 
 }

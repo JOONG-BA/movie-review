@@ -58,4 +58,21 @@ public class ReviewService {
 
         reviewRepository.delete(review);
     }
+
+    public List<ReviewResponse> findByMovieId(Long movieId) {
+        MovieDB movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "해당 영화가 없습니다. id=" + movieId
+                ));
+
+        List<Review> reviews = reviewRepository.findAllByMovie_Id(movieId);
+
+        return reviews.stream()
+                .map(r -> new ReviewResponse(
+                        r.getMovie().getTitle(),
+                        r.getScore(),
+                        r.getContent()
+                ))
+                .toList();
+    }
 }
