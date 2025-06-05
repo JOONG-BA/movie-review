@@ -17,7 +17,7 @@ export function SignupDialog() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email, password, nickname: name }) // 백엔드에서 nickname으로 받음
+        body: JSON.stringify({ email, password, nickname: name })
       })
 
       const data = await response.json()
@@ -36,68 +36,43 @@ export function SignupDialog() {
 
   return (
     <>
-      <Button id="open-login-btn" className="hidden" onClick={() => setOpen(true)}>
-        로그인
-      </Button>
-    
       <Button id="open-signup-btn" className="hidden" onClick={() => setOpen(true)}>
         회원가입
       </Button>
 
-      <Button
-        className="rounded-sm border border-gray-500 hover:bg-gray-800 delay-3"
-        onClick={() => setOpen(true)}
-      >
+      <Button className="rounded-sm border border-gray-500 hover:bg-gray-800 delay-3" onClick={() => setOpen(true)}>
         회원가입
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-gray-900/95 text-white rounded-xl shadow-2xl backdrop-blur-md px-8 py-6 max-w-md">
+        <DialogContent className="bg-gray-900/95 text-white">
           <DialogHeader>
             <DialogTitle>회원가입</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">이름</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">이메일</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">비밀번호</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <Button onClick={handleSignup}>회원가입</Button>
-          </div>
 
-          <div className="text-sm text-center text-gray-500 mt-2">
-            이미 계정이 있으신가요?{" "}
+          <Label>이름</Label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} />
+          <Label>이메일</Label>
+          <Input value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Label>비밀번호</Label>
+          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+
+          <Button className="mt-4" onClick={handleSignup}>
+            회원가입
+          </Button>
+
+          <p className="text-sm mt-4 text-center">
+            이미 계정이 있으신가요?{' '}
             <span
+              className="text-blue-400 cursor-pointer"
               onClick={() => {
                 setOpen(false)
                 document.getElementById("open-login-btn")?.click()
               }}
-              className="text-blue-500 hover:underline cursor-pointer"
             >
               로그인
             </span>
-          </div>
+          </p>
         </DialogContent>
       </Dialog>
     </>
