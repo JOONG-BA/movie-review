@@ -27,7 +27,8 @@ public class ReviewService {
                 .map(r -> new ReviewResponse(
                         r.getMovie().getTitle(),
                         r.getScore(),
-                        r.getContent()
+                        r.getContent(),
+                        r.getUser().getNickname()
                 ))
                 .toList();
     }
@@ -71,7 +72,8 @@ public class ReviewService {
                 .map(r -> new ReviewResponse(
                         r.getMovie().getTitle(),
                         r.getScore(),
-                        r.getContent()
+                        r.getContent(),
+                        r.getUser().getNickname()
                 ))
                 .toList();
     }
