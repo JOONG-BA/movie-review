@@ -1,25 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import StarRatingInput from "./StarRatingInput";
 import RatingAverage from "./RatingAverage";
 import RatingActions from "./RatingActions";
 import { ReviewModal } from "@/components/ui/ReviewModal.jsx";
+import { AuthContext } from "@/context/AuthContext.jsx";
 
 export default function RatingBar({ voteAverage, movieId }) {
     const [average, setAverage] = useState(0.0);
     const [liked, setLiked] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
 
+    const { isLoggedIn } = useContext(AuthContext);
+
     const handleRate = async (rating) => {
+        if (!isLoggedIn) {
+            alert("로그인이 필요합니다!");
+            return;
+        }
+
         const res = await fetch("/api/rate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ voteAverage, rating }),
         });
+
         const data = await res.json();
         setAverage(data.average);
     };
 
     const handleLike = async () => {
+        if (!isLoggedIn) {
+            alert("로그인이 필요합니다!");
+            return;
+        }
+
         const res = await fetch("/api/like", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -28,6 +42,14 @@ export default function RatingBar({ voteAverage, movieId }) {
         if (res.ok) {
             setLiked((prev) => !prev);
         }
+    };
+
+    const handleCommentClick = () => {
+        if (!isLoggedIn) {
+            alert("로그인이 필요합니다!");
+            return;
+        }
+        setModalOpen(true);
     };
 
     return (
@@ -41,7 +63,7 @@ export default function RatingBar({ voteAverage, movieId }) {
                     <RatingActions
                         liked={liked}
                         onLike={handleLike}
-                        onComment={() => setModalOpen(true)}
+                        onComment={handleCommentClick}
                     />
                 </div>
             </div>
