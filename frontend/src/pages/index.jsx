@@ -226,9 +226,11 @@ export const dummyMovies = [
 export default function Home() {
     return (
         <div className="max-w-[1320px] w-full pt-10 m-auto">
-            <MovieSlide title="최신 리뷰" />
-            <MovieSlide title="평점 높은 영화" />
-            <MovieSlide title="액션 영화" />
+            <MovieSlide title="인기순" genre={null} />
+            <MovieSlide title="액션 영화" genre={28}/>
+            <MovieSlide title="코미디 영화" genre={35}/>
+            <MovieSlide title="공포 영화" genre={27}/>
+            <MovieSlide title="SF 영화" genre={878}/>
         </div>
     );
 }

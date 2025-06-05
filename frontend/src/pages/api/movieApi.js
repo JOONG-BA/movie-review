@@ -57,8 +57,8 @@ export const getPopularFromApi = async (page = 1) => {
  * @returns {Promise<SearchResultDTO[]>}
  */
 export const getPopularByGenreFromApi = async (genreId, page = 1) => {
-    const res = await axios.get(`${API_BASE}/popular/api/genre`, {
-        params: { genreId, page },
+    const res = await axios.get(`${API_BASE}/popular/genre/api`, {
+        params: { genre: genreId, page },
     });
     return res.data;
 };

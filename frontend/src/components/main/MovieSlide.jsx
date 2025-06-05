@@ -6,15 +6,22 @@ import {Link} from "react-router-dom";
 import {NextArrow} from "@/components/slider/PrevArrow.jsx";
 import {PrevArrow} from "@/components/slider/NextArrow.jsx";
 import {useEffect, useState} from "react";
-import {getPopularFromApi} from "@/pages/api/movieApi.js";
+import {getPopularByGenreFromApi, getPopularFromApi} from "@/pages/api/movieApi.js";
 
-export const MovieSlide = ({ title }) => {
+export const MovieSlide = ({ title, genre }) => {
     const [movies, setMovies] = useState([]);
 
     useEffect(() => {
-        getPopularFromApi()
-            .then(res => {setMovies(res);})
-            .catch(console.error);
+        if(genre === null)
+        {
+            getPopularFromApi()
+                .then(res => {setMovies(res)})
+                .catch(console.error);
+        }else{
+            getPopularByGenreFromApi(genre)
+                .then(res => {setMovies(res); console.log(res)})
+                .catch(console.error);
+        }
     }, []);
 
     const settings = {
@@ -67,7 +74,7 @@ export const MovieSlide = ({ title }) => {
                     {movies.map((movie) => (
                         <Link to={`/movie/detail/${movie.id}`} key={movie.id} className="pr-1 sm:pr-2 cursor-pointer">
                             <div className="bg-gray-400 rounded-sm border border-gray-200 overflow-hidden">
-                                <img src={"https://image.tmdb.org/t/p/w500/" + movie.posterPath} alt={movie.title}/>
+                                <img src={"https://image.tmdb.org/t/p/w500/" + movie.posterUrl} alt={movie.title}/>
                             </div>
                             <div className="grid gap-y-1">
                                 <p className="mt-2 text-base sm:text-lg font-semibold">{movie.title}</p>
@@ -75,7 +82,7 @@ export const MovieSlide = ({ title }) => {
                                     {movie.releaseDate}
                                     <p className="inline mx-1">
                                         {movie.genres?.map((g, idx) => (
-                                            <span key={idx} className="mr-1">· {g}</span>
+                                            <span key={idx} className="mr-1">· {g.name}</span>
                                         ))}
                                     </p>
                                 </div>
