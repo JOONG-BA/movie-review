@@ -21,7 +21,7 @@ export default function MovieGallery({ images = [] }) {
         initialSlide: 0,
         speed: 1000,
         arrows: true,
-        infinite: true,
+        infinite: false,
         nextArrow: <NextArrow />,
         prevArrow: <PrevArrow />,
         swipe: false,
@@ -35,6 +35,7 @@ export default function MovieGallery({ images = [] }) {
                     swipe: true,
                     arrows: false,
                     centerPadding: "15%",
+                    infinite: true,
                 }
             }
         ],
@@ -50,13 +51,13 @@ export default function MovieGallery({ images = [] }) {
         <div className="mt-8 container">
             <h2 className="text-xl text-left font-bold my-4">갤러리</h2>
             <Slider ref={sliderRef}  {...settings} className="relative" >
-                {images.map((src, idx) => (
+                {images.map((img, idx) => (
                     <div className="px-1">
                         <img
                             key={idx}
-                            src={src}
+                            src={img.url}
                             alt={`gallery-${idx}`}
-                            onClick={() => handleImageClick(src)}
+                            onClick={() => handleImageClick(img.url)}
                             className="cursor-pointer object-cover aspect-[3/2] rounded"
                         />
                     </div>

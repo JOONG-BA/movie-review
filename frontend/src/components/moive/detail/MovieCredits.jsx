@@ -45,9 +45,9 @@ export default function CastAndCrew({ casts = [], directors = [] }) {
                         <div className="flex flex-col gap-4 pr-4">
                             {chunk.map((person) => (
                                 <div key={person.id} className="flex gap-4 items-center">
-                                    {person.profilePath ? (
+                                    {person.profileImageUrl ? (
                                         <img
-                                            src={person.profilePath}
+                                            src={person.profileImageUrl}
                                             alt={person.name}
                                             className="w-12 h-12 object-cover rounded"
                                         />
@@ -61,10 +61,10 @@ export default function CastAndCrew({ casts = [], directors = [] }) {
                                             <p className="font-semibold">{person.name}</p>
                                             <p className="text-gray-500 text-xs">
                                                 {person.type === "cast"
-                                                    ? person.role
-                                                        ? `출연 | ${person.role}`
+                                                    ? person.character
+                                                        ? `출연 | ${person.character}`
                                                         : "출연"
-                                                    : person.role}
+                                                    : "감독"}
                                             </p>
                                         </div>
                                     </div>
