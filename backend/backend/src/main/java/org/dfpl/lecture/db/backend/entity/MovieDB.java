@@ -5,7 +5,7 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "movies_list")
+@Table(name = "movie_final")
 @Getter
 @Setter
 @NoArgsConstructor

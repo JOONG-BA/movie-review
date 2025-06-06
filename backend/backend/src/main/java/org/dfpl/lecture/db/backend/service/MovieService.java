@@ -51,25 +51,55 @@ public class MovieService {
      * PageRequest.of(page, size, Sort.by("voteCount").descending()) 같이 Pageable로 넘겨주면 됩니다.
      */
 
-    public List<MovieSummaryDTO> getPopularMovies(int page) throws IOException {
-        // 엔드포인트 구성
-        String endpoint = "/discover/movie"
+    // 한 페이지당 TMDB가 반환하는 영화 개수(고정 20개)
+    private static final int PAGE_SIZE = 20;
+    // TMDB Rate Limit 회피용 최소 딜레이(ms)
+    private static final long CALL_DELAY_MS = 300L;
+
+    /**
+     * Discover API를 1페이지부터 total_pages(315)까지 순차 호출하여,
+     * 전체(≈6,290개) 영화를 DB에 저장/업데이트합니다.
+     */
+    @Transactional
+    public void loadAllAvailable() throws IOException, InterruptedException {
+        System.out.println(">> loadAllAvailable() 진입, 첫 페이지 호출 준비");
+        // 1) 첫 페이지를 호출해서 total_pages 값을 얻음
+        String firstEndpoint = "/discover/movie"
                 + "?sort_by=popularity.desc"
                 + "&language=ko-KR"
-                + "primary_release_date.gte=2005-01-01"
+                + "primary_release_date.gte=1990-01-01"
                 + "region=ko-KR"
                 + "vote_count.gte=500"
                 + "watch_region=ko-KR"
-                + "&page=" + page;
+                + "&page=" + 1;
 
-        JsonObject root = fetchJson(endpoint);
+        JsonObject firstRoot = fetchJson(firstEndpoint);
+        int totalPages = firstRoot.get("total_pages").getAsInt();  // 315
+        // totalResults = firstRoot.get("total_results").getAsInt(); // 6290
 
-        List<MovieSummaryDTO> dtoList = parseMovieSummaryList(root.getAsJsonArray("results"));
+        // 2) 1페이지부터 totalPages까지 순차 호출
+        for (int page = 1; page <= totalPages; page++) {
+            String endpoint = "/discover/movie"
+                    + "?sort_by=popularity.desc"
+                    + "&language=ko-KR"
+                    + "&page=" + page;
 
-        saveOrUpdate(dtoList);
+            JsonObject root = fetchJson(endpoint);
+            JsonArray results = root.getAsJsonArray("results");
+            if (results == null || results.size() == 0) {
+                break;  // 만약 중간에 데이터가 비어 있으면 종료
+            }
 
-        return dtoList;
+            // DTO 파싱 → DB 저장
+            List<MovieSummaryDTO> dtoList = parseMovieSummaryList(results);
+            saveOrUpdate(dtoList);
+
+            Thread.sleep(CALL_DELAY_MS);
+        }
+        // 총 약 6,290개 영화를 저장 (315페이지 × 20개 = 6,300개 중 일부 페이지에는 20개 미만인 경우가 있어 최종 약 6,290개)
     }
+
+
 
     /**
      * results 배열(JsonArray)을 받아서 MovieSummaryDTO 리스트로 변환하는 헬퍼

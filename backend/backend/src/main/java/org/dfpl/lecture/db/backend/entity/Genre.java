@@ -7,7 +7,7 @@ import org.dfpl.lecture.db.backend.dto.GenreDTO;
 import java.util.List;
 
 @Entity
-@Table(name = "genre")
+@Table(name = "genre_final")
 @Getter
 @Setter
 @NoArgsConstructor

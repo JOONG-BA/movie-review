@@ -51,21 +51,29 @@ public class MovieController {
                     .body(null);
         }
     }
-    /**
-     * DB에 저장된 모든 영화를 voteCount 내림차순(인기순)으로 페이징 조회합니다.
-     * GET /api/movies/popular?page={page}&size={size}
-     *
-     * @param page  페이지 번호 (0부터 시작; 기본값 0)
-     */
-    @GetMapping("/popular/api")
-    public ResponseEntity<List<MovieSummaryDTO>> getPopular(
-            @RequestParam(value = "page", defaultValue = "1") int page
-    ) {
+
+//    @GetMapping("/popular/api")
+//    public ResponseEntity<List<MovieSummaryDTO>> getPopular(
+//            @RequestParam(value = "page", defaultValue = "1") int page
+//    ) {
+//        try {
+//            List<MovieSummaryDTO> list = movieService.getPopularMovies(page);
+//            return ResponseEntity.ok(list);
+//        } catch (IOException e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+//        }
+//    }
+    @PostMapping("/load-all")
+    public ResponseEntity<Void> loadAllMovies() {
         try {
-            List<MovieSummaryDTO> list = movieService.getPopularMovies(page);
-            return ResponseEntity.ok(list);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            movieService.loadAllAvailable();
+            // 성공적으로 모두 저장되면, 빈 200 응답
+            return ResponseEntity.ok().build();
+        } catch (IOException | InterruptedException e) {
+            // 예외가 발생하면 502 Bad Gateway(또는 적절한 에러 코드) 리턴
+            return ResponseEntity.status(502).build();
         }
     }
 }
+
+
