@@ -27,7 +27,8 @@ public class ReviewService {
                 .map(r -> new ReviewResponse(
                         r.getMovie().getTitle(),
                         r.getScore(),
-                        r.getContent()
+                        r.getContent(),
+                        r.getUser().getNickname()
                 ))
                 .toList();
     }
@@ -57,5 +58,26 @@ public class ReviewService {
         }
 
         reviewRepository.delete(review);
+    }
+
+    public List<ReviewResponse> findByMovieId(Long movieId) {
+        // (선택 사항) movieId가 실제 존재하는 영화인지 확인하고 싶다면:
+        MovieDB movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "해당 영화가 없습니다. id=" + movieId
+                ));
+
+        // Repository에서 movie_id가 일치하는 모든 Review 엔티티 가져오기
+        List<Review> reviews = reviewRepository.findAllByMovie_Id(movieId);
+
+        // Review → ReviewResponse DTO 변환
+        return reviews.stream()
+                .map(r -> new ReviewResponse(
+                        r.getMovie().getTitle(),
+                        r.getScore(),
+                        r.getContent(),
+                        r.getUser().getNickname()
+                ))
+                .toList();
     }
 }
