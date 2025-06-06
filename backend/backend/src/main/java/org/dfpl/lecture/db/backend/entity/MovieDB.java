@@ -1,21 +1,17 @@
 package org.dfpl.lecture.db.backend.entity;
 
-import lombok.*;
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import lombok.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "movie")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "movie_db_hard")
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class MovieDB {
-
     @Id
-    private Long id;  // TMDB의 movie ID
+    private Long id;
 
     @Column(nullable = false)
     private String title;
@@ -26,12 +22,10 @@ public class MovieDB {
     @Lob
     private String overview;
 
+    private Double popularity;
+
     @Column(name = "release_date")
-    private LocalDate releaseDate;
-
-    private String country;
-
-    private Integer runtime;
+    private String releaseDate;
 
     @Column(name = "vote_average")
     private Double voteAverage;
@@ -39,21 +33,23 @@ public class MovieDB {
     @Column(name = "vote_count")
     private Integer voteCount;
 
-    @Column(name = "poster_path")
-    private String posterPath;
+    @Column(name = "poster_url")
+    private String posterUrl;
 
-    @Column(name = "backdrop_path")
-    private String backdropPath;
+    @Column(name = "backdrop_url")
+    private String backdropUrl;
 
-    /**
-     * Movie ↔ Genre 는 N:M 관계입니다.
-     * movie_genre 라는 조인 테이블을 사용하여 매핑합니다.
-     */
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "movie_genre",
-            joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "genre_id")
-    )
-    private List<Genre> genres;
+    // 4개의 장르 ID 칼럼을 추가
+    @Column(name = "genre1")
+    private Long genre1;
+
+    @Column(name = "genre2")
+    private Long genre2;
+
+    @Column(name = "genre3")
+    private Long genre3;
+
+    @Column(name = "genre4")
+    private Long genre4;
 }
+

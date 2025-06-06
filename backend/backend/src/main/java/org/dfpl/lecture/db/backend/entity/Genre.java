@@ -2,9 +2,12 @@ package org.dfpl.lecture.db.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.dfpl.lecture.db.backend.dto.GenreDTO;
+
+import java.util.List;
 
 @Entity
-@Table(name = "genre")
+@Table(name = "genre_v3")
 @Getter
 @Setter
 @NoArgsConstructor
