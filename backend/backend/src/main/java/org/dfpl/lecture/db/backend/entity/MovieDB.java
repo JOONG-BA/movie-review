@@ -2,19 +2,16 @@ package org.dfpl.lecture.db.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "movie_final")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "movie_db_hard")
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class MovieDB {
-
     @Id
-    private Long id;  // TMDB의 movie ID
+    private Long id;
 
     @Column(nullable = false)
     private String title;
@@ -25,11 +22,10 @@ public class MovieDB {
     @Lob
     private String overview;
 
-    @Column(name = "popularity")
     private Double popularity;
 
     @Column(name = "release_date")
-    private String releaseDate;  // MovieSummaryDTO의 String 형식(예: "2021-10-01")
+    private String releaseDate;
 
     @Column(name = "vote_average")
     private Double voteAverage;
@@ -38,16 +34,22 @@ public class MovieDB {
     private Integer voteCount;
 
     @Column(name = "poster_url")
-    private String posterUrl;    // MovieSummaryDTO의 full URL
+    private String posterUrl;
 
     @Column(name = "backdrop_url")
-    private String backdropUrl;  // MovieSummaryDTO의 full URL
+    private String backdropUrl;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "movie_genre",
-            joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "genre_id")
-    )
-    private List<Genre> genres;
+    // 4개의 장르 ID 칼럼을 추가
+    @Column(name = "genre1")
+    private Long genre1;
+
+    @Column(name = "genre2")
+    private Long genre2;
+
+    @Column(name = "genre3")
+    private Long genre3;
+
+    @Column(name = "genre4")
+    private Long genre4;
 }
+

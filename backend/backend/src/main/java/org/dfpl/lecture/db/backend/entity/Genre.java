@@ -7,7 +7,7 @@ import org.dfpl.lecture.db.backend.dto.GenreDTO;
 import java.util.List;
 
 @Entity
-@Table(name = "genre_final")
+@Table(name = "genre_v3")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,7 +24,4 @@ public class Genre {
 
     @Column(nullable = false, length = 100)
     private String name;
-
-    @ManyToMany(mappedBy = "genres", fetch = FetchType.LAZY)
-    private List<MovieDB> movies;
 }

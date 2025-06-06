@@ -5,14 +5,13 @@ import lombok.RequiredArgsConstructor;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.dfpl.lecture.db.backend.dto.*;
-import org.dfpl.lecture.db.backend.entity.Genre;
 import org.dfpl.lecture.db.backend.entity.MovieDB;
-import org.dfpl.lecture.db.backend.repository.GenreRepository;
 import org.dfpl.lecture.db.backend.repository.MovieRepository;
 import org.dfpl.lecture.db.backend.util.GenreMappingUtil;
 import org.dfpl.lecture.db.backend.util.TmdbApiUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -28,28 +26,7 @@ import java.util.*;
 public class MovieService {
 
     private final Gson gson = new Gson();
-
     private final MovieRepository movieRepository;
-    private final GenreRepository genreRepository;
-
-
-
-    /**
-     * 간단히 endpointWithQuery를 받아 요청을 보내고
-     * JSON 본문을 JsonObject로 파싱하여 반환하는 헬퍼 메서드입니다.
-     */
-    private JsonObject fetchJson(String endpointWithQuery) throws IOException {
-        Request request = TmdbApiUtil.buildRequest(endpointWithQuery);
-        try (Response response = TmdbApiUtil.getClient().newCall(request).execute()) {
-            String body = response.body().string();
-            return JsonParser.parseString(body).getAsJsonObject();
-        }
-    }
-
-    /**
-     * 장르별 인기순 조회 예시:
-     * PageRequest.of(page, size, Sort.by("voteCount").descending()) 같이 Pageable로 넘겨주면 됩니다.
-     */
 
     // 한 페이지당 TMDB가 반환하는 영화 개수(고정 20개)
     private static final int PAGE_SIZE = 20;
@@ -57,52 +34,56 @@ public class MovieService {
     private static final long CALL_DELAY_MS = 300L;
 
     /**
-     * Discover API를 1페이지부터 total_pages(315)까지 순차 호출하여,
-     * 전체(≈6,290개) 영화를 DB에 저장/업데이트합니다.
+     * TMDB Discover API를 이용해서 1페이지부터 total_pages만큼 호출하여
+     * 영화 정보를 모두 DB에 저장/업데이트합니다.
      */
     @Transactional
     public void loadAllAvailable() throws IOException, InterruptedException {
         System.out.println(">> loadAllAvailable() 진입, 첫 페이지 호출 준비");
-        // 1) 첫 페이지를 호출해서 total_pages 값을 얻음
+
+        // 0) 첫 페이지를 호출해서 전체 페이지 수(total_pages)를 구함
         String firstEndpoint = "/discover/movie"
                 + "?sort_by=popularity.desc"
                 + "&language=ko-KR"
-                + "primary_release_date.gte=1990-01-01"
-                + "region=ko-KR"
-                + "vote_count.gte=500"
-                + "watch_region=ko-KR"
-                + "&page=" + 1;
+                + "&primary_release_date.gte=1990-01-01"
+                + "&region=ko-KR"
+                + "&vote_count.gte=500"
+                + "&watch_region=ko-KR"
+                + "&page=1";
 
         JsonObject firstRoot = fetchJson(firstEndpoint);
-        int totalPages = firstRoot.get("total_pages").getAsInt();  // 315
-        // totalResults = firstRoot.get("total_results").getAsInt(); // 6290
+        int totalPages = firstRoot.get("total_pages").getAsInt();  // 예: 315
 
-        // 2) 1페이지부터 totalPages까지 순차 호출
+        // 1) 1페이지부터 totalPages까지 순회하면서 데이터를 가져오고 저장
         for (int page = 1; page <= totalPages; page++) {
             String endpoint = "/discover/movie"
                     + "?sort_by=popularity.desc"
                     + "&language=ko-KR"
+                    + "&primary_release_date.gte=1990-01-01"
+                    + "&region=ko-KR"
+                    + "&vote_count.gte=500"
+                    + "&watch_region=ko-KR"
                     + "&page=" + page;
 
             JsonObject root = fetchJson(endpoint);
             JsonArray results = root.getAsJsonArray("results");
             if (results == null || results.size() == 0) {
-                break;  // 만약 중간에 데이터가 비어 있으면 종료
+                break;
             }
 
-            // DTO 파싱 → DB 저장
+            // 2) JSON 배열을 MovieSummaryDTO 리스트로 변환
             List<MovieSummaryDTO> dtoList = parseMovieSummaryList(results);
+
+            // 3) DTO 리스트를 DB 저장/업데이트
             saveOrUpdate(dtoList);
 
+            // 4) TMDB Rate Limit을 피하기 위해 잠시 Sleep
             Thread.sleep(CALL_DELAY_MS);
         }
-        // 총 약 6,290개 영화를 저장 (315페이지 × 20개 = 6,300개 중 일부 페이지에는 20개 미만인 경우가 있어 최종 약 6,290개)
     }
 
-
-
     /**
-     * results 배열(JsonArray)을 받아서 MovieSummaryDTO 리스트로 변환하는 헬퍼
+     * TMDB /discover/movie 결과(JsonArray)를 받아서 MovieSummaryDTO 리스트로 변환
      */
     private List<MovieSummaryDTO> parseMovieSummaryList(JsonArray results) {
         List<MovieSummaryDTO> list = new ArrayList<>();
@@ -121,26 +102,26 @@ public class MovieService {
             dto.setVoteAverage(obj.get("vote_average").getAsDouble());
             dto.setVoteCount(obj.get("vote_count").getAsInt());
 
-            // poster_path → 풀 URL
+            // poster_path → full URL
             if (obj.has("poster_path") && !obj.get("poster_path").isJsonNull()) {
                 String posterPath = obj.get("poster_path").getAsString();
                 dto.setPosterUrl(TmdbApiUtil.getPosterImageUrl(posterPath));
             }
-            // backdrop_path → 풀 URL (필요 시)
+            // backdrop_path → full URL
             if (obj.has("backdrop_path") && !obj.get("backdrop_path").isJsonNull()) {
                 String backdropPath = obj.get("backdrop_path").getAsString();
                 dto.setBackdropUrl(TmdbApiUtil.getBackdropImageUrl(backdropPath));
             }
 
-            // genre_ids → List<GenreDTO> 매핑 (앞서 정의한 유틸 사용)
+            // genre_ids → List<GenreDTO> 매핑 (GenreMappingUtil 사용)
             List<GenreDTO> genreList = new ArrayList<>();
             if (obj.has("genre_ids") && obj.get("genre_ids").isJsonArray()) {
                 JsonArray ids = obj.getAsJsonArray("genre_ids");
                 for (JsonElement idElem : ids) {
-                    int gid = idElem.getAsInt();
+                    long gid = idElem.getAsLong();
                     String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(gid);
                     if (name != null) {
-                        genreList.add(new GenreDTO((long)gid, name));
+                        genreList.add(new GenreDTO(gid, name));
                     }
                 }
             }
@@ -151,53 +132,99 @@ public class MovieService {
         return list;
     }
 
-    private void saveOrUpdate(List<MovieSummaryDTO> movieSummaryDTOS) {
+    /**
+     * 가져온 MovieSummaryDTO 리스트를 DB에 저장하거나 업데이트합니다.
+     * - 기존에 저장된 영화면 필요한 필드만 업데이트
+     * - 신규 영화면 insert
+     * - DTO의 genres(GenreDTO 리스트)에서 ID만 꺼내 genre1~genre4에 하드코딩으로 분배
+     */
+    @Transactional
+    public void saveOrUpdate(List<MovieSummaryDTO> movieSummaryDTOS) {
         for (MovieSummaryDTO dto : movieSummaryDTOS) {
-            Long id = dto.getId();
-            Optional<MovieDB> movieDB = movieRepository.findById(id);
+            Long movieId = dto.getId();
+            Optional<MovieDB> movieOpt = movieRepository.findById(movieId);
 
-            if (movieDB.isPresent()) {
-                MovieDB exisiting =  movieDB.get();
+            // DTO의 GenreDTO 리스트에서 ID만 꺼내옴
+            List<Long> incomingGenreIds = dto.getGenres() == null
+                    ? Collections.emptyList()
+                    : dto.getGenres().stream()
+                    .map(GenreDTO::getId)
+                    .toList();
+
+            // 최대 4개까지만 사용 (없으면 null)
+            Long g1 = incomingGenreIds.size() > 0 ? incomingGenreIds.get(0) : null;
+            Long g2 = incomingGenreIds.size() > 1 ? incomingGenreIds.get(1) : null;
+            Long g3 = incomingGenreIds.size() > 2 ? incomingGenreIds.get(2) : null;
+            Long g4 = incomingGenreIds.size() > 3 ? incomingGenreIds.get(3) : null;
+
+            if (movieOpt.isPresent()) {
+                // ── (A) 기존 영화가 DB에 이미 있는 경우: 필요한 필드만 업데이트
+                MovieDB existing = movieOpt.get();
                 boolean needUpdate = false;
 
-                if(!Objects.equals(exisiting.getTitle(), dto.getTitle())) {
-                    exisiting.setTitle(dto.getTitle());
+                // 1) 일반 필드 비교
+                if (!Objects.equals(existing.getTitle(), dto.getTitle())) {
+                    existing.setTitle(dto.getTitle());
                     needUpdate = true;
                 }
-                if(!Objects.equals(exisiting.getOriginalTitle(), dto.getOriginalTitle())) {
-                    exisiting.setOriginalTitle(dto.getOriginalTitle());
+                if (!Objects.equals(existing.getOriginalTitle(), dto.getOriginalTitle())) {
+                    existing.setOriginalTitle(dto.getOriginalTitle());
                     needUpdate = true;
                 }
-                if(!Objects.equals(exisiting.getOverview(), dto.getOverview())) {
-                    exisiting.setOverview(dto.getOverview());
+                if (!Objects.equals(existing.getOverview(), dto.getOverview())) {
+                    existing.setOverview(dto.getOverview());
                     needUpdate = true;
                 }
-                if(!Objects.equals(exisiting.getPopularity(), dto.getPopularity())) {
-                    exisiting.setPopularity(dto.getPopularity());
+                if (!Objects.equals(existing.getPopularity(), dto.getPopularity())) {
+                    existing.setPopularity(dto.getPopularity());
                     needUpdate = true;
                 }
-                if(!Objects.equals(exisiting.getReleaseDate(), dto.getReleaseDate())) {
-                    exisiting.setReleaseDate(dto.getReleaseDate());
+                if (!Objects.equals(existing.getReleaseDate(), dto.getReleaseDate())) {
+                    existing.setReleaseDate(dto.getReleaseDate());
                     needUpdate = true;
                 }
-                if(!Objects.equals(exisiting.getVoteAverage(), dto.getVoteAverage())) {
-                    exisiting.setVoteAverage(dto.getVoteAverage());
+                if (!Objects.equals(existing.getVoteAverage(), dto.getVoteAverage())) {
+                    existing.setVoteAverage(dto.getVoteAverage());
                     needUpdate = true;
                 }
-                if(!Objects.equals(exisiting.getVoteCount(), dto.getVoteCount())) {
-                    exisiting.setVoteCount(dto.getVoteCount());
+                if (!Objects.equals(existing.getVoteCount(), dto.getVoteCount())) {
+                    existing.setVoteCount(dto.getVoteCount());
                     needUpdate = true;
                 }
-                if(!Objects.equals(exisiting.getPosterUrl(), dto.getPosterUrl())) {
-                    exisiting.setPosterUrl(dto.getPosterUrl());
+                if (!Objects.equals(existing.getPosterUrl(), dto.getPosterUrl())) {
+                    existing.setPosterUrl(dto.getPosterUrl());
                     needUpdate = true;
                 }
-                if(!Objects.equals(exisiting.getBackdropUrl(), dto.getBackdropUrl())) {
-                    exisiting.setBackdropUrl(dto.getBackdropUrl());
+                if (!Objects.equals(existing.getBackdropUrl(), dto.getBackdropUrl())) {
+                    existing.setBackdropUrl(dto.getBackdropUrl());
                     needUpdate = true;
                 }
-            }
-            else{
+
+                // 2) 하드코딩 장르(genre1~4) 비교 및 설정
+                if (!Objects.equals(existing.getGenre1(), g1)) {
+                    existing.setGenre1(g1);
+                    needUpdate = true;
+                }
+                if (!Objects.equals(existing.getGenre2(), g2)) {
+                    existing.setGenre2(g2);
+                    needUpdate = true;
+                }
+                if (!Objects.equals(existing.getGenre3(), g3)) {
+                    existing.setGenre3(g3);
+                    needUpdate = true;
+                }
+                if (!Objects.equals(existing.getGenre4(), g4)) {
+                    existing.setGenre4(g4);
+                    needUpdate = true;
+                }
+
+                // 3) 변경이 발생한 경우에만 save 호출
+                if (needUpdate) {
+                    movieRepository.save(existing);
+                }
+
+            } else {
+                // ── (B) 신규 영화인 경우: insert
                 MovieDB movie = MovieDB.builder()
                         .id(dto.getId())
                         .title(dto.getTitle())
@@ -209,21 +236,11 @@ public class MovieService {
                         .releaseDate(dto.getReleaseDate())
                         .posterUrl(dto.getPosterUrl())
                         .backdropUrl(dto.getBackdropUrl())
+                        .genre1(g1)
+                        .genre2(g2)
+                        .genre3(g3)
+                        .genre4(g4)
                         .build();
-                if(dto.getGenres() != null && !dto.getGenres().isEmpty()) {
-                    List<Genre> genreEntities = new ArrayList<>();
-                    for(GenreDTO genreDTO : dto.getGenres()) {
-                        Genre genre = genreRepository.findById(genreDTO.getId())
-                                .orElseGet(()->{
-                                    Genre g = new Genre();
-                                    g.setId(genreDTO.getId());
-                                    g.setName(genreDTO.getName());
-                                    return genreRepository.save(g);
-                                });
-                            genreEntities.add(genre);
-                    }
-                    movie.setGenres(genreEntities);
-                }
 
                 movieRepository.save(movie);
             }
@@ -231,14 +248,92 @@ public class MovieService {
     }
 
     /**
-     * TMDB /search/movie API 호출 → 결과를 SearchResultDTO 리스트로 반환
-     *
-     * @param query 검색어 (예: "인셉션")
-     * @param page  TMDB 검색 페이지 (1부터 시작); null일 경우 기본 1 사용
+     * 엔티티 → DTO 변환 헬퍼
+     */
+    private MovieSummaryDTO toSummaryDto(MovieDB entity) {
+        MovieSummaryDTO dto = new MovieSummaryDTO();
+        dto.setId(entity.getId());
+        dto.setTitle(entity.getTitle());
+        dto.setOriginalTitle(entity.getOriginalTitle());
+        dto.setOverview(entity.getOverview());
+        dto.setPopularity(entity.getPopularity());
+        dto.setReleaseDate(entity.getReleaseDate());
+        dto.setVoteAverage(entity.getVoteAverage());
+        dto.setVoteCount(entity.getVoteCount());
+        dto.setPosterUrl(entity.getPosterUrl());
+        dto.setBackdropUrl(entity.getBackdropUrl());
+
+        // genre1~genre4 컬럼을 한곳에 모아서 List<GenreDTO> 생성
+        List<GenreDTO> genres = new ArrayList<>();
+        if (entity.getGenre1() != null) {
+            Long gid = entity.getGenre1();
+            String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(gid);
+            if (name != null) genres.add(new GenreDTO(gid, name));
+        }
+        if (entity.getGenre2() != null) {
+            Long gid = entity.getGenre2();
+            String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(gid);
+            if (name != null) genres.add(new GenreDTO(gid, name));
+        }
+        if (entity.getGenre3() != null) {
+            Long gid = entity.getGenre3();
+            String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(gid);
+            if (name != null) genres.add(new GenreDTO(gid, name));
+        }
+        if (entity.getGenre4() != null) {
+            Long gid = entity.getGenre4();
+            String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(gid);
+            if (name != null) genres.add(new GenreDTO(gid, name));
+        }
+        dto.setGenres(genres);
+
+        return dto;
+    }
+
+    /**
+     * 1) DB에서 “제목 or 개요 LIKE” 검색 → DTO 페이지로 리턴
+     */
+    @Transactional(readOnly = true)
+    public Page<MovieSummaryDTO> searchMoviesInDb(
+            String keyword, int page, int size
+    ) {
+        // Pageable에 인기순 정렬을 붙여서 생성
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("popularity").descending());
+        // Repository의 custom query 호출
+        Page<MovieDB> entityPage = movieRepository.searchByKeywordOrderByPopularityDesc(keyword, pageable);
+        // 엔티티 페이지 → DTO 페이지로 매핑
+        return entityPage.map(this::toSummaryDto);
+    }
+
+    /**
+     * 2) DB에 저장된 전체 영화 중 인기순 페이징 조회 → DTO 페이지로 리턴
+     */
+    @Transactional(readOnly = true)
+    public Page<MovieSummaryDTO> getPopularFromDb(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("popularity").descending());
+        Page<MovieDB> entityPage = movieRepository.findAllByOrderByPopularityDesc(pageable);
+        return entityPage.map(this::toSummaryDto);
+    }
+
+    /**
+     * 3) DB에서 특정 장르별로 인기순 페이징 조회 → DTO 페이지로 리턴
+     */
+    @Transactional(readOnly = true)
+    public Page<MovieSummaryDTO> getPopularByGenreFromDb(
+            Long genreId, int page, int size
+    ) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<MovieDB> entityPage = movieRepository.findByGenreIdOrderByPopularityDesc(genreId, pageable);
+        return entityPage.map(this::toSummaryDto);
+    }
+
+
+    /**
+     * TMDB /search/movie API 호출 → 결과를 MovieSummaryDTO 리스트로 반환
      */
     public List<MovieSummaryDTO> searchMovies(String query, int page) throws IOException {
         // 1) 검색어 URL 인코딩
-        String encoded = URLEncoder.encode(query, StandardCharsets.UTF_8.toString());
+        String encoded = URLEncoder.encode(query, StandardCharsets.UTF_8);
 
         // 2) /search/movie 엔드포인트 구성 (language=ko-KR 포함)
         String endpoint = "/search/movie"
@@ -270,22 +365,21 @@ public class MovieService {
                     String posterPath = obj.get("poster_path").getAsString();
                     dto.setPosterUrl(TmdbApiUtil.getPosterImageUrl(posterPath));
                 }
-
-                // backdrop_path → full URL (필요 시)
+                // backdrop_path → full URL
                 if (obj.has("backdrop_path") && !obj.get("backdrop_path").isJsonNull()) {
                     String backdropPath = obj.get("backdrop_path").getAsString();
                     dto.setBackdropUrl(TmdbApiUtil.getBackdropImageUrl(backdropPath));
                 }
 
-                // 4) genre_ids 배열 → List<GenreDTO> 매핑
+                // 4) genre_ids → List<GenreDTO> 매핑
                 List<GenreDTO> genreList = new ArrayList<>();
                 if (obj.has("genre_ids") && obj.get("genre_ids").isJsonArray()) {
                     JsonArray genreIdsArr = obj.getAsJsonArray("genre_ids");
                     for (JsonElement idElem : genreIdsArr) {
-                        int genreId = idElem.getAsInt();
+                        long genreId = idElem.getAsLong();
                         String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(genreId);
                         if (name != null) {
-                            genreList.add(new GenreDTO((long)genreId, name));
+                            genreList.add(new GenreDTO(genreId, name));
                         }
                     }
                 }
@@ -299,10 +393,43 @@ public class MovieService {
     }
 
     /**
+     * TMDB Search API로 검색한 결과를 DB에 저장하지 않고, 그대로 DTO 리스트만 반환하려면 위 메서드를 사용하세요.
+     */
+
+
+    /**
+     * DB에 저장된 영화 전체를 popularity DESC 순으로 페이징 조회
+     */
+    public Page<MovieDB> getPopularMovies(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return movieRepository.findAllByOrderByPopularityDesc(pageable);
+    }
+
+    /**
+     * “genre1~genre4 중 하나라도 genreId와 일치하는 영화”를 popularity DESC 순으로 페이징 조회
+     */
+    public Page<MovieDB> getPopularByGenre(Long genreId, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return movieRepository.findByGenreIdOrderByPopularityDesc(genreId, pageable);
+    }
+
+
+    /**
+     * TMDB API를 호출하고 JSON 본문을 JsonObject로 파싱하여 반환하는 헬퍼 메서드
+     */
+    private JsonObject fetchJson(String endpointWithQuery) throws IOException {
+        Request request = TmdbApiUtil.buildRequest(endpointWithQuery);
+        try (Response response = TmdbApiUtil.getClient().newCall(request).execute()) {
+            String body = response.body().string();
+            return JsonParser.parseString(body).getAsJsonObject();
+        }
+    }
+
+    /**
      * TMDB에서 영화 세부 정보를 조회하여 MovieDetailDTO로 반환합니다.
      * 저장하지 않고, 바로 TMDB에서 읽어서 DTO만 만듭니다.
      */
-    public MovieDetailDTO getMovieDetail(Long movieId) throws IOException {
+    public MovieDetailDTO getMovieDetail (Long movieId) throws IOException {
         MovieDetailDTO dto = new MovieDetailDTO();
         dto.setId(movieId);
 
@@ -443,3 +570,4 @@ public class MovieService {
         return dto;
     }
 }
+
