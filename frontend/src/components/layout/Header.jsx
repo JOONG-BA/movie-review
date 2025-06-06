@@ -1,48 +1,72 @@
-import { useContext } from "react"
-import { Link } from "react-router-dom"
-import { Button } from "@/components/ui/button.jsx"
-import { Input } from "@/components/ui/input.jsx"
-import { IoMdSearch } from "react-icons/io"
-import { LoginDialog } from "@/components/ui/LoginDialog.jsx"
-import { SignupDialog } from "@/components/ui/SignupDialog.jsx"
-import { AuthContext } from "@/context/AuthContext.jsx"
-import MovieSearchForm from "@/components/moive/search/MovieSearchForm.jsx";
+import { useContext, useState } from "react";
+import { Link } from "react-router-dom";
+import { IoMdSearch } from "react-icons/io";
+import { AuthContext } from "@/context/AuthContext.jsx";
+import { LoginDialog } from "@/components/ui/LoginDialog.jsx";
+import { SignupDialog } from "@/components/ui/SignupDialog.jsx";
+import { Button } from "@/components/ui/button.jsx";
+import { Input } from "@/components/ui/input.jsx";
 
 const Header = () => {
-  const { isLoggedIn, logout } = useContext(AuthContext)
+  const { isLoggedIn, logout, user } = useContext(AuthContext);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [signupOpen, setSignupOpen] = useState(false);
 
   return (
-    <header className="fixed w-full z-50 bg-gray-900 text-white flex items-center justify-center overflow-hidden top-0">
-      <div className="w-full flex justify-between items-center py-3 container">
-        <Link to="/" className="text-xs sm:text-3xl tracking-tighter">MOVIELOG</Link>
-        <div className="flex gap-5">
-          <MovieSearchForm />
-          <nav className="flex items-center gap-3">
-            {isLoggedIn ? (
-              <>
-                <Link to="/mypage">
-                  <Button className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 text-sm rounded-md">
-                    마이페이지
-                  </Button>
-                </Link>
-                <Button
-                  className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 text-sm rounded-md"
-                  onClick={logout}
-                >
-                  로그아웃
-                </Button>
-              </>
-            ) : (
-              <>
-                <LoginDialog />
-                <SignupDialog />
-              </>
-            )}
-          </nav>
-        </div>
-      </div>
-    </header>
-  )
-}
+      <header className="fixed w-full z-50 bg-gray-900 text-white top-0">
+        <div className="w-full flex justify-between items-center py-3 container px-4">
 
-export default Header
+          {/* 왼쪽: 로고 */}
+          <Link to="/" className="text-xs sm:text-3xl tracking-tighter">
+            MOVIELOG
+          </Link>
+
+          {/* 오른쪽: 검색창 + 버튼들 */}
+          <div className="flex items-center gap-3">
+            <form className="relative hidden sm:block">
+              <Input
+                  className="bg-gray-800 rounded-xs w-[200px] md:w-[250px] border-0"
+                  placeholder="찾는 영화가 있으신가요?"
+              />
+              <button type="submit" className="absolute right-2 top-2 text-white">
+                <IoMdSearch size={20} />
+              </button>
+            </form>
+
+            {!isLoggedIn ? (
+                <>
+                  <Button variant="outline" onClick={() => setLoginOpen(true)}>
+                    로그인
+                  </Button>
+                  <Button variant="outline" onClick={() => setSignupOpen(true)}>
+                    회원가입
+                  </Button>
+                </>
+            ) : (
+                <>
+                  <Link
+                      to="/mypage"
+                      className="w-9 h-9 rounded-full overflow-hidden border border-white"
+                  >
+                    <img
+                        src={user?.imageUrl || "/default-avatar.png"}
+                        alt="profile"
+                        className="object-cover w-full h-full"
+                    />
+                  </Link>
+                  <Button variant="ghost" onClick={logout}>
+                    로그아웃
+                  </Button>
+                </>
+            )}
+          </div>
+        </div>
+
+        {/* 모달 */}
+        <LoginDialog open={loginOpen} setOpen={setLoginOpen} />
+        <SignupDialog open={signupOpen} setOpen={setSignupOpen} />
+      </header>
+  );
+};
+
+export default Header;
