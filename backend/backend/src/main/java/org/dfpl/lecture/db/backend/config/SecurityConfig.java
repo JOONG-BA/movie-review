@@ -42,6 +42,7 @@ public class SecurityConfig {
                                 "/api/movies/detail/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/movies/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
 
                         // 2) USER 권한이 필요한 엔드포인트
                         .requestMatchers(HttpMethod.POST,   "/api/reviews/**").hasRole("USER")

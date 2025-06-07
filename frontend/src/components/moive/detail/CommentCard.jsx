@@ -15,7 +15,7 @@ export default function CommentCard({ comment, maxLength }) {
                     <div className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full">
                         <FaUser className="text-gray-400 text-sm" />
                     </div>
-                    <span className="font-medium text-sm text-gray-600 ">{comment.author}</span>
+                    <span className="font-medium text-sm text-gray-600 ">{comment.authorNickname}</span>
                 </div>
                 {comment.rating !== undefined && (
                     <div className="flex gap-1 items-center text-gray-600">
