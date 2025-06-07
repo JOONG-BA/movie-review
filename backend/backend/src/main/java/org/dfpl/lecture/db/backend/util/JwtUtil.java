@@ -13,9 +13,13 @@ public class JwtUtil {
     private final long EXPIRATION = 1000 * 60 * 60*24;
 
     public String generateToken(String email, List<String> roles) {
+        List<String> prefixed = roles.stream()
+                .map(r -> r.startsWith("ROLE_") ? r : "ROLE_" + r)
+                .toList();
+
         return Jwts.builder()
                 .setSubject(email)
-                .claim("roles", roles)
+                .claim("roles", prefixed)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(SignatureAlgorithm.HS512, SECRET)
@@ -25,7 +29,6 @@ public class JwtUtil {
     public String generateToken(String email) {
         return generateToken(email, List.of("USER"));
     }
-
     public String getEmailFromToken(String token) {
         return Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token).getBody().getSubject();
     }

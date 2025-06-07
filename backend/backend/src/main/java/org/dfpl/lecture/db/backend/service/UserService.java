@@ -33,7 +33,7 @@ public class UserService {
                 .map(r -> new MyReviewDTO(
                         r.getId(),
                         r.getMovie().getId(),
-                        r.getScore(),
+                        r.getScore() != null ? r.getScore() : 0,
                         r.getContent()
                 ))
                 .collect(Collectors.toList());
