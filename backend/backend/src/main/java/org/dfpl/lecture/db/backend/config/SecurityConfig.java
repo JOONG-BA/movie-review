@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // 1) 인증 없이 열어줄 엔드포인트
+                        // 인증 없이 열어줄 엔드포인트
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/movies/**",
@@ -42,17 +42,17 @@ public class SecurityConfig {
                                 "/api/movies/detail/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/movies/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/movies/**").permitAll()
 
-                        // 2) USER 권한이 필요한 엔드포인트
-                        .requestMatchers(HttpMethod.POST,   "/api/reviews/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.GET,    "/api/users/me", "/api/users/me/**")
-                        .hasRole("USER")
-                        .requestMatchers(HttpMethod.POST,   "/api/users/me/favorites/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.DELETE,"/api/users/me/favorites/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.POST,   "/api/like").hasRole("USER")
+                        // 리뷰 관련은 인증만 되어 있으면 통과
+                        .requestMatchers("/api/reviews/**").authenticated()
 
-                        // 3) 위에 걸리지 않는 모든 요청은 인증만 있으면 OK
+                        // 유저 개인 정보는 USER 권한 필요
+                        .requestMatchers("/api/users/me/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/api/users/me/favorites/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/me/favorites/**").hasRole("USER")
+
+                        // 그 외 나머지 요청은 인증만 있으면 OK
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -60,7 +60,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
