@@ -16,8 +16,8 @@ export default function SearchPage() {
         if (!query) return;
         try {
             const newMovies = await searchMovies(query, page);
-            setMovies((prev) => [...prev, ...newMovies]);
-            if (newMovies.length === 0) {
+            setMovies((prev) => [...prev, ...newMovies.content]);
+            if (newMovies.content.length === 0) {
                 setHasMore(false);
             }
         } catch (error) {
