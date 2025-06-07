@@ -24,7 +24,7 @@ public class ReviewController {
     private final UserRepository userRepository;
 
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> create(
             @RequestBody ReviewRequest req,
             Authentication authentication          // Spring Security Authentication 객체

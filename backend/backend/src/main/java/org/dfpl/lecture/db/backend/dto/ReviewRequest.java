@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class ReviewRequest {
     private Long movieId;
-    private int score;       // 1~5
+    private Integer score;    // null 허용
     private String content;
 }

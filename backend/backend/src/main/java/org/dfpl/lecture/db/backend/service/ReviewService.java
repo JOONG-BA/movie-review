@@ -32,10 +32,26 @@ public class ReviewService {
                 ))
                 .toList();
     }
+
     public Long create(User user, ReviewRequest request) {
         MovieDB movie = movieRepository.findById(request.getMovieId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "영화를 찾을 수 없습니다"));
+
+        boolean hasScore = request.getScore() != null;
+        boolean hasContent = request.getContent() != null && !request.getContent().isBlank();
+
+        if (!hasScore && !hasContent) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "score 또는 content 중 하나는 반드시 입력해야 합니다.");
+        }
+
+        if (hasScore && (request.getScore() < 1 || request.getScore() > 5)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "score는 1~5 사이의 정수여야 합니다.");
+        }
 
         Review review = Review.builder()
                 .movie(movie)

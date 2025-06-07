@@ -3,6 +3,7 @@ package org.dfpl.lecture.db.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import org.hibernate.annotations.Check;
 
 @Entity
 @Getter
@@ -10,15 +11,17 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Check(constraints = "(score is not null or content is not null)")
 public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int score;
+    @Column(nullable = true)
+    private Integer score;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

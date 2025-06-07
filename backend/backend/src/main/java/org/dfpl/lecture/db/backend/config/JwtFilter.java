@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.dfpl.lecture.db.backend.util.JwtUtil;
 import org.dfpl.lecture.db.backend.service.CustomUserDetailsService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,48 +33,39 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest req,
+                                    HttpServletResponse res,
+                                    FilterChain chain) throws ServletException, IOException {
 
-        String header = request.getHeader("Authorization");
+        String header = req.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
+
             if (jwtUtil.validateToken(token)) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(
-                        jwtUtil.getEmailFromToken(token)
-                );
 
-                Collection<? extends GrantedAuthority> originalAuthorities =
-                        userDetails.getAuthorities();
+                /* ────── [교체 시작] ────── */
+                // ① 토큰에서 이메일 & roles 추출
+                String email = jwtUtil.getEmailFromToken(token);
 
-                List<GrantedAuthority> mappedAuthorities = originalAuthorities.stream()
-                        .map(granted -> {
-                            String roleName = granted.getAuthority();
-                            if (roleName.startsWith("ROLE_")) {
-                                return granted;
-                            }
-                            return new SimpleGrantedAuthority("ROLE_" + roleName);
-                        })
-                        .collect(Collectors.toList());
+                List<SimpleGrantedAuthority> authorities = jwtUtil.getRolesFromToken(token).stream()
+                        .map(r -> r.startsWith("ROLE_") ? r : "ROLE_" + r)
+                        .map(SimpleGrantedAuthority::new)
+                        .toList();
 
+
+                // ② Authentication 생성 (principal 에 email 문자열 사용)
                 UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                mappedAuthorities
-                        );
+                        new UsernamePasswordAuthenticationToken(email, null, authorities);
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
 
-                auth.setDetails(
-                        new WebAuthenticationDetailsSource()
-                                .buildDetails(request)
-                );
+                // ③ SecurityContext 에 저장
                 SecurityContextHolder.getContext().setAuthentication(auth);
+                /* ────── [교체 끝] ────── */
             }
         }
 
-        filterChain.doFilter(request, response);
+        chain.doFilter(req, res);
     }
+
 }
 
