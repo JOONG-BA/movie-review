@@ -14,18 +14,23 @@ export const MovieSlide = ({ title, genre }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        setLoading(true);
 
-        if(genre === null)
-        {
-            getPopularFromApi()
-                .then(res => {setMovies(res.content);})
-                .catch(console.error);
-        }else{
-            getPopularByGenreFromApi(genre)
-                .then(res => {setMovies(res.content);})
-                .catch(console.error);
-        }
-    }, []);
+        const fetchMovies = genre === null
+            ? getPopularFromApi()
+            : getPopularByGenreFromApi(genre);
+
+        fetchMovies
+            .then(res => {
+                setMovies(res.content);
+            })
+            .catch(console.error)
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [genre]);
+
+    if (loading) return <LoadingSpinner />;
 
     const settings = {
         dots: false,
