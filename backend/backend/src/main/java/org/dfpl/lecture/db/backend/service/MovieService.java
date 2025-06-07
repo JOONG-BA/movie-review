@@ -247,56 +247,16 @@ public class MovieService {
         }
     }
 
-    /**
-     * 엔티티 → DTO 변환 헬퍼
-     */
-    private MovieSummaryDTO toSummaryDto(MovieDB entity) {
-        MovieSummaryDTO dto = new MovieSummaryDTO();
-        dto.setId(entity.getId());
-        dto.setTitle(entity.getTitle());
-        dto.setOriginalTitle(entity.getOriginalTitle());
-        dto.setOverview(entity.getOverview());
-        dto.setPopularity(entity.getPopularity());
-        dto.setReleaseDate(entity.getReleaseDate());
-        dto.setVoteAverage(entity.getVoteAverage());
-        dto.setVoteCount(entity.getVoteCount());
-        dto.setPosterUrl(entity.getPosterUrl());
-        dto.setBackdropUrl(entity.getBackdropUrl());
-
-        // genre1~genre4 컬럼을 한곳에 모아서 List<GenreDTO> 생성
-        List<GenreDTO> genres = new ArrayList<>();
-        if (entity.getGenre1() != null) {
-            Long gid = entity.getGenre1();
-            String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(gid);
-            if (name != null) genres.add(new GenreDTO(gid, name));
-        }
-        if (entity.getGenre2() != null) {
-            Long gid = entity.getGenre2();
-            String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(gid);
-            if (name != null) genres.add(new GenreDTO(gid, name));
-        }
-        if (entity.getGenre3() != null) {
-            Long gid = entity.getGenre3();
-            String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(gid);
-            if (name != null) genres.add(new GenreDTO(gid, name));
-        }
-        if (entity.getGenre4() != null) {
-            Long gid = entity.getGenre4();
-            String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(gid);
-            if (name != null) genres.add(new GenreDTO(gid, name));
-        }
-        dto.setGenres(genres);
-
-        return dto;
-    }
 
     private SearchResultDTO toSearchResultDto(MovieDB entity) {
+        Double rawVote = entity.getVoteAverage();
+        double halfVote = (rawVote != null ? rawVote / 2.0 : 0.0);
         return new SearchResultDTO(
                 entity.getId(),
                 entity.getTitle(),
                 entity.getReleaseDate(),
                 entity.getPosterUrl(),
-                entity.getVoteAverage()
+                halfVote
         );
     }
 
@@ -338,90 +298,7 @@ public class MovieService {
     }
 
 
-    /**
-     * TMDB /search/movie API 호출 → 결과를 MovieSummaryDTO 리스트로 반환
-     */
-    public List<MovieSummaryDTO> searchMovies(String query, int page) throws IOException {
-        // 1) 검색어 URL 인코딩
-        String encoded = URLEncoder.encode(query, StandardCharsets.UTF_8);
 
-        // 2) /search/movie 엔드포인트 구성 (language=ko-KR 포함)
-        String endpoint = "/search/movie"
-                + "?query=" + encoded
-                + "&page=" + page
-                + "&language=ko-KR";
-
-        // 3) TMDB 호출
-        JsonObject root = fetchJson(endpoint);
-        JsonArray results = root.getAsJsonArray("results");
-
-        List<MovieSummaryDTO> list = new ArrayList<>();
-        if (results != null) {
-            for (JsonElement elem : results) {
-                JsonObject obj = elem.getAsJsonObject();
-
-                MovieSummaryDTO dto = new MovieSummaryDTO();
-                dto.setId(obj.get("id").getAsLong());
-                dto.setTitle(obj.get("title").getAsString());
-                dto.setOriginalTitle(obj.get("original_title").getAsString());
-                dto.setOverview(obj.get("overview").getAsString());
-                dto.setPopularity(obj.get("popularity").getAsDouble());
-                dto.setReleaseDate(obj.get("release_date").getAsString());
-                dto.setVoteAverage(obj.get("vote_average").getAsDouble());
-                dto.setVoteCount(obj.get("vote_count").getAsInt());
-
-                // poster_path → full URL
-                if (obj.has("poster_path") && !obj.get("poster_path").isJsonNull()) {
-                    String posterPath = obj.get("poster_path").getAsString();
-                    dto.setPosterUrl(TmdbApiUtil.getPosterImageUrl(posterPath));
-                }
-                // backdrop_path → full URL
-                if (obj.has("backdrop_path") && !obj.get("backdrop_path").isJsonNull()) {
-                    String backdropPath = obj.get("backdrop_path").getAsString();
-                    dto.setBackdropUrl(TmdbApiUtil.getBackdropImageUrl(backdropPath));
-                }
-
-                // 4) genre_ids → List<GenreDTO> 매핑
-                List<GenreDTO> genreList = new ArrayList<>();
-                if (obj.has("genre_ids") && obj.get("genre_ids").isJsonArray()) {
-                    JsonArray genreIdsArr = obj.getAsJsonArray("genre_ids");
-                    for (JsonElement idElem : genreIdsArr) {
-                        long genreId = idElem.getAsLong();
-                        String name = GenreMappingUtil.GENRE_ID_TO_NAME.get(genreId);
-                        if (name != null) {
-                            genreList.add(new GenreDTO(genreId, name));
-                        }
-                    }
-                }
-                dto.setGenres(genreList);
-
-                list.add(dto);
-            }
-        }
-
-        return list;
-    }
-
-    /**
-     * TMDB Search API로 검색한 결과를 DB에 저장하지 않고, 그대로 DTO 리스트만 반환하려면 위 메서드를 사용하세요.
-     */
-
-
-    /**
-     * DB에 저장된 영화 전체를 popularity DESC 순으로 페이징 조회
-     */
-    public Page<MovieDB> getPopularMovies(int page, int size) {
-        Pageable pageable = PageRequest.of(page - 1, size);
-        return movieRepository.findAllByOrderByPopularityDesc(pageable);
-    }
-
-    /**
-     * “genre1~genre4 중 하나라도 genreId와 일치하는 영화”를 popularity DESC 순으로 페이징 조회
-     */
-    public Page<MovieDB> getPopularByGenre(Long genreId, int page, int size) {
-        Pageable pageable = PageRequest.of(page - 1, size);
-        return movieRepository.findByGenreIdOrderByPopularityDesc(genreId, pageable);
-    }
 
 
     /**
@@ -479,7 +356,7 @@ public class MovieService {
         }
 
         // TMDB 평점 + 투표 수
-        dto.setVoteAverage(movieObj.get("vote_average").getAsDouble());
+        dto.setVoteAverage(movieObj.get("vote_average").getAsDouble() / 2.0);
         dto.setVoteCount(movieObj.get("vote_count").getAsInt());
 
         // 장르 리스트 (genres 배열에서 name만 추출)

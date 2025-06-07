@@ -2,7 +2,7 @@ package org.dfpl.lecture.db.backend.dto;
 
 public record ReviewResponse(
         String movieTitle,
-        Integer    score,
+        Double    score,
         String content,
         String authorNickname
 ) {}

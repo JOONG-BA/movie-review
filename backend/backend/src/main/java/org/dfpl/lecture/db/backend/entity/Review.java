@@ -19,7 +19,7 @@ public class Review {
     private Long id;
 
     @Column(nullable = true)
-    private Integer score;
+    private Double score;
 
     @Column(nullable = true)
     private String content;
