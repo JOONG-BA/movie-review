@@ -12,6 +12,7 @@ export default function MyPage() {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("로그인이 필요합니다.");
 
+      // 1) 내 정보
       const res = await fetch("http://localhost:8080/api/users/me", {
         headers: {
           "Content-Type": "application/json",
@@ -21,7 +22,8 @@ export default function MyPage() {
       if (!res.ok) throw new Error(`status ${res.status}`);
       const dto = await res.json();
 
-      const withMovie = await Promise.all(
+      // 2) 최근 리뷰에 영화 정보 붙이기
+      const reviewsWithMovieData = await Promise.all(
           dto.recentReviews.map(async (rv) => {
             try {
               const mvRes = await fetch(
@@ -46,7 +48,42 @@ export default function MyPage() {
           })
       );
 
-      setProfile({ ...dto, recentReviews: withMovie });
+      // 3) 즐겨찾기 영화에도 상세 정보 붙이기
+      const favoritesWithMovieData = await Promise.all(
+          dto.favoriteMovies.map(async (fav) => {
+            try {
+              const mvRes = await fetch(
+                  `http://localhost:8080/api/movies/detail/${fav.movieId}`,
+                  {
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                  }
+              );
+              const movie = await mvRes.json();
+              return {
+                ...fav,
+                title: movie.title,
+                posterPath: movie.poster_path || null,
+                originalTitle: movie.originalTitle || "",
+                releaseDate: movie.releaseDate || movie.releaseYear || "",
+                genres: Array.isArray(movie.genres) ? movie.genres : [],
+                country: movie.country || "",
+                runtime: movie.runtime || 0,
+              };
+            } catch {
+              // 실패 시 DTO 그대로
+              return { ...fav, genres: [], releaseDate: "", country: "", runtime: 0 };
+            }
+          })
+      );
+
+      setProfile({
+        ...dto,
+        recentReviews: reviewsWithMovieData,
+        favoriteMovies: favoritesWithMovieData,
+      });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -63,10 +100,7 @@ export default function MyPage() {
     return (
         <div className="p-8 text-center text-red-600">
           {error}{" "}
-          <button
-              onClick={() => navigate("/login")}
-              className="underline"
-          >
+          <button onClick={() => navigate("/login")} className="underline">
             로그인 페이지로
           </button>
         </div>
@@ -133,17 +167,19 @@ export default function MyPage() {
                       )}
                     </div>
                     <div className="flex-1 p-4">
-                      <h4 className="text-xl font-semibold text-left">{review.title}</h4>
+                      <h4 className="text-xl font-semibold text-left">
+                        {review.title}
+                      </h4>
                       <div className="flex items-center mt-2">
                         <span className="text-lg">★</span>
-                        <span className="ml-1 text-lg">{review.score}/5</span>
+                        <span className="ml-1 text-lg">{review.score}/10</span>
                       </div>
                       <p className="mt-2 text-base leading-relaxed text-left">
                         {review.content}
                       </p>
                       <p className="mt-3 text-sm text-gray-600 text-left">
                         {profile.nickname} |{" "}
-                        {review.createdAt ? review.createdAt : "작성일 없음"}
+                        {review.createdAt || "작성일 없음"}
                       </p>
                     </div>
                   </div>
@@ -158,26 +194,51 @@ export default function MyPage() {
 
           {/* 즐겨찾는 영화 */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-base sm:text-lg font-semibold mb-4">
-              즐겨찾는 영화
-            </h3>
-            {profile.favoriteMovies.length === 0 ? (
-                <p className="text-gray-500 text-sm">
-                  즐겨찾기한 영화가 없습니다.
-                </p>
-            ) : (
-                <div className="space-y-4">
-                  {profile.favoriteMovies.map((movie, idx) => (
-                      <div key={idx} className="border p-4 rounded">
-                        <h4 className="font-semibold text-sm sm:text-base">
-                          {movie.title}
-                        </h4>
-                      </div>
-                  ))}
-                </div>
-            )}
-            <div className="mt-4 text-center">
-              <button className="px-4 py-2 border rounded hover:bg-gray-50 text-sm">
+            <h3 className="text-2xl font-bold mb-4 text-left">즐겨찾는 영화</h3>
+            <div className="space-y-4">
+              {profile.favoriteMovies.map((movie, i) => (
+                  <div
+                      key={i}
+                      className="flex items-start border border-gray-300 rounded-lg overflow-hidden"
+                  >
+                    <div className="w-32 h-40 p-1 flex-shrink-0">
+                      {movie.posterPath ? (
+                          <img
+                              src={movie.posterPath}
+                              alt={movie.title}
+                              className="w-full h-full object-cover rounded"
+                          />
+                      ) : (
+                          <div className="w-full h-full bg-gray-200 rounded" />
+                      )}
+                    </div>
+                    <div className="flex-1 p-4">
+                      <h4 className="text-xl font-semibold text-left">
+                        {movie.title}
+                      </h4>
+                      {movie.originalTitle && (
+                          <p className="text-sm text-gray-500 mt-1 text-left">
+                            {movie.originalTitle}
+                          </p>
+                      )}
+                      <p className="text-sm text-gray-500 mt-2 text-left">
+                        {movie.releaseDate}
+                        {movie.genres.length
+                            ? ` · ${movie.genres.join("·")}`
+                            : ""}
+                        {movie.country
+                            ? ` · ${movie.country}`
+                            : ""}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1 text-left">
+                        {movie.runtime}분
+                      </p>
+                    </div>
+                  </div>
+              ))}
+            </div>
+            <div className="mt-6 text-center">
+              <button className="px-5 py-2 border rounded-lg hover:bg-gray-50">
                 더보기
               </button>
             </div>
