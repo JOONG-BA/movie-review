@@ -39,7 +39,7 @@ public class MovieDetailDTO {
 
     // 예고편 / 트레일러
     private List<VideoDTO> trailers;
-
+    private boolean favorite;
     public void setPosterUrl(String posterImageUrl) {
         this.poster_path = posterImageUrl;
     }

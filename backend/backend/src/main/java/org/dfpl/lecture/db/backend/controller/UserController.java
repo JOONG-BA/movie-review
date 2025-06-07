@@ -83,7 +83,7 @@ public class UserController {
                 .map(fav -> new FavoriteMovieDTO(
                         fav.getMovie().getId(),
                         fav.getMovie().getTitle(),
-                        fav.getMovie().getPosterPath()
+                        fav.getMovie().getPosterUrl()
                 ))
                 .collect(Collectors.toList());
 

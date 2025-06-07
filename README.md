@@ -42,7 +42,7 @@ React와 Spring Boot를 활용한 영화 리뷰 플랫폼입니다.
 
 | 파트           | 이름 (GitHub ID) |
 | -------------- | ---------------- |
-| Frontend       | namisu009        |
+| Frontend       | namisu009, namisu000        |
 | Frontend       | NASEEL4013       |
 | Backend (팀장) | JOONG-BA         |
 | Backend        | jeonseohee9      |
