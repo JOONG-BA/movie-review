@@ -19,7 +19,7 @@ export default function RatingActions({ liked, onLike, onComment }) {
         <div className="flex justify-end gap-0 text-xs ">
             <button onClick={onLike} {...buttonProps}>
                 {liked ? (
-                    <BsBookmarkHeartFill {...iconProps} />
+                    <BsBookmarkHeartFill {...iconProps}  className="text-pink-600" />
                 ) : (
                     <CgMathPlus {...iconProps} />
                 )}
