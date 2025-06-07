@@ -26,12 +26,14 @@ public class ReviewService {
                 .stream()
                 .map(r -> new ReviewResponse(
                         r.getMovie().getTitle(),
-                        r.getScore(),
+                        // null-safe 처리 추가
+                        r.getScore() != null ? r.getScore() : 0,
                         r.getContent(),
                         r.getUser().getNickname()
                 ))
                 .toList();
     }
+
 
     public Long create(User user, ReviewRequest request) {
         MovieDB movie = movieRepository.findById(request.getMovieId())
