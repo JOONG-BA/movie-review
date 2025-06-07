@@ -27,7 +27,7 @@ public class ReviewService {
                 .map(r -> new ReviewResponse(
                         r.getMovie().getTitle(),
                         // null-safe 처리 추가
-                        r.getScore() != null ? r.getScore() : 0,
+                        r.getScore() != null ? r.getScore() : 0.0,
                         r.getContent(),
                         r.getUser().getNickname()
                 ))
@@ -58,7 +58,7 @@ public class ReviewService {
         Review review = Review.builder()
                 .movie(movie)
                 .user(user)
-                .score(request.getScore())
+                .score(Double.valueOf(request.getScore()))
                 .content(request.getContent())
                 .build();
 

@@ -291,12 +291,14 @@ public class MovieService {
     }
 
     private SearchResultDTO toSearchResultDto(MovieDB entity) {
+        Double rawVote = entity.getVoteAverage();
+        double halfVote = (rawVote != null ? rawVote / 2.0 : 0.0);
         return new SearchResultDTO(
                 entity.getId(),
                 entity.getTitle(),
                 entity.getReleaseDate(),
                 entity.getPosterUrl(),
-                entity.getVoteAverage()
+                halfVote
         );
     }
 
@@ -479,7 +481,7 @@ public class MovieService {
         }
 
         // TMDB 평점 + 투표 수
-        dto.setVoteAverage(movieObj.get("vote_average").getAsDouble());
+        dto.setVoteAverage(movieObj.get("vote_average").getAsDouble() / 2.0);
         dto.setVoteCount(movieObj.get("vote_count").getAsInt());
 
         // 장르 리스트 (genres 배열에서 name만 추출)

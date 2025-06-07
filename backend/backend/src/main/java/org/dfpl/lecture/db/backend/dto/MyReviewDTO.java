@@ -6,10 +6,10 @@ import lombok.Data;
 public class MyReviewDTO {
     private Long reviewId;
     private Long movieId;
-    private Integer score;
+    private Double score;
     private String content;
 
-    public MyReviewDTO(Long reviewId, Long movieId, int score, String content) {
+    public MyReviewDTO(Long reviewId, Long movieId, Double score, String content) {
         this.reviewId = reviewId;
         this.movieId = movieId;
         this.score = score;
