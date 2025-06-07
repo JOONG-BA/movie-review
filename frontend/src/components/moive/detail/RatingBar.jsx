@@ -5,7 +5,7 @@ import RatingActions from "./RatingActions";
 import { ReviewModal } from "@/components/ui/ReviewModal.jsx";
 import { AuthContext } from "@/context/AuthContext.jsx";
 
-export default function RatingBar({ voteAverage, movieId }) {
+export default function RatingBar({ voteAverage, movieId = null }) {
     const [average, setAverage] = useState(0.0);
     const [liked, setLiked] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);

@@ -7,10 +7,15 @@ import {
 } from "@/components/ui/dialog.jsx";
 import { Button } from "@/components/ui/button.jsx";
 
-export function ReviewModal({ open, setOpen, movieId, onSubmitSuccess }) {
+export function ReviewModal({ open, setOpen, movieId = null, onSubmitSuccess }) {
   const [content, setContent] = useState("");
 
   const handleSubmit = async () => {
+    if (!movieId) {
+      alert("영화 정보를 불러올 수 없습니다.");
+      return;
+    }
+
     const token = localStorage.getItem("token");
 
     try {
