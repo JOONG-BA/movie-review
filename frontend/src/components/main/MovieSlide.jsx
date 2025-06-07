@@ -15,11 +15,11 @@ export const MovieSlide = ({ title, genre }) => {
         if(genre === null)
         {
             getPopularFromApi()
-                .then(res => {setMovies(res)})
+                .then(res => {setMovies(res.content);})
                 .catch(console.error);
         }else{
             getPopularByGenreFromApi(genre)
-                .then(res => {setMovies(res); console.log(res)})
+                .then(res => {setMovies(res.content);})
                 .catch(console.error);
         }
     }, []);
