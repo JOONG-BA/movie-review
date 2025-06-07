@@ -38,7 +38,7 @@ public class FavoriteService {
                     return new FavoriteMovieDTO(
                             m.getId(),            // movieId
                             m.getTitle(),         // title
-                            m.getPosterPath()     // posterPath
+                            m.getPosterUrl()     // posterPath
                             // 필요하다면 추가 필드(getReleaseDate(), getVoteAverage() 등)도 넣으세요
                     );
                 })
@@ -77,7 +77,19 @@ public class FavoriteService {
         return favoriteRepository.findAllByUser(user);
     }
 
+    @Transactional(readOnly = true)
+    public boolean isFavorite(String email, Long movieId) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
+        MovieDB movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new IllegalArgumentException("영화를 찾을 수 없습니다: id=" + movieId));
+        return favoriteRepository.existsByUserAndMovie(user, movie);
+    }
+
+    @Transactional(readOnly = true)
     public boolean isFavorite(User user, Long movieId) {
-        return favoriteRepository.existsByUserAndMovieId(user, movieId);
+        MovieDB movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new IllegalArgumentException("영화를 찾을 수 없습니다: id=" + movieId));
+        return favoriteRepository.existsByUserAndMovie(user, movie);
     }
 }
