@@ -4,10 +4,11 @@ import RatingAverage from "./RatingAverage";
 import RatingActions from "./RatingActions";
 import { ReviewModal } from "@/components/ui/ReviewModal.jsx";
 import { AuthContext } from "@/context/AuthContext.jsx";
+import {addFavorite, removeFavorite} from "@/pages/api/favoriteApi.js";
 
-export default function RatingBar({ voteAverage, movieId = null }) {
+export default function RatingBar({ voteAverage, movieId = null, isFavorite }) {
     const [average, setAverage] = useState(0.0);
-    const [liked, setLiked] = useState(false);
+    const [liked, setLiked] = useState(isFavorite);
     const [modalOpen, setModalOpen] = useState(false);
 
     const { isLoggedIn } = useContext(AuthContext);
@@ -34,13 +35,16 @@ export default function RatingBar({ voteAverage, movieId = null }) {
             return;
         }
 
-        const res = await fetch("/api/like", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ voteAverage }),
-        });
-        if (res.ok) {
+        try {
+            if (liked) {
+                await removeFavorite(movieId);
+            } else {
+                await addFavorite(movieId);
+            }
+
             setLiked((prev) => !prev);
+        } catch (err) {
+            alert(err.message);
         }
     };
 
