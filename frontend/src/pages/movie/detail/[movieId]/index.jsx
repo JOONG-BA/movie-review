@@ -27,7 +27,7 @@ export default function MovieDetailPage() {
             .finally(() => setLoading(false));
     }, [movieId]);
 
-    if (loading) return  <LoadingSpinner />; // ✅ 로딩 중 화면
+    if (loading) return  <LoadingSpinner />;
 
     return (
         <div className="mb-10">
