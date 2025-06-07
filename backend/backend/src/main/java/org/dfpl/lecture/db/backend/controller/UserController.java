@@ -140,11 +140,8 @@ public class UserController {
             Authentication auth,
             @PathVariable("movieId") Long movieId
     ) {
-        User user = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("사용자 없음: " + auth.getName()));
-
-        boolean isFavorite = favoriteService.isFavorite(user, movieId);
-        return ResponseEntity.ok().body(Collections.singletonMap("isFavorite", isFavorite));
+        String email = auth.getName();
+        boolean isFavorite = favoriteService.isFavorite(email, movieId);
+        return ResponseEntity.ok(Collections.singletonMap("isFavorite", isFavorite));
     }
 }
-
