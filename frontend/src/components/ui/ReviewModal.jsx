@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog.jsx";
 import { Button } from "@/components/ui/button.jsx";
+import {createReview} from "@/pages/api/reviewApi.js";
 
 export function ReviewModal({ open, setOpen, movieId = null, onSubmitSuccess }) {
   const [content, setContent] = useState("");
@@ -16,28 +17,17 @@ export function ReviewModal({ open, setOpen, movieId = null, onSubmitSuccess }) 
       return;
     }
 
-    const token = localStorage.getItem("token");
-
     try {
-      const res = await fetch("/api/reviews", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
-        body: JSON.stringify({ movieId, content }),
-      });
-
-      if (!res.ok) throw new Error("리뷰 전송 실패");
-
+      await createReview({ movieId, content }); // rating 제외
+      alert("리뷰가 등록되었습니다!");
       setOpen(false);
       setContent("");
-      alert("리뷰가 등록되었습니다!");
-      onSubmitSuccess?.();
+      onSubmitSuccess?.(); // 코멘트 새로고침
     } catch (err) {
       console.error(err);
       alert("리뷰 등록 중 오류가 발생했습니다.");
     }
+
   };
 
   return (
