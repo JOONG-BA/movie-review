@@ -1,6 +1,7 @@
 package org.dfpl.lecture.db.backend.service;
 
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.dfpl.lecture.db.backend.dto.ReviewRequest;
 import org.dfpl.lecture.db.backend.dto.ReviewResponse;
@@ -13,13 +14,79 @@ import org.dfpl.lecture.db.backend.repository.ReviewRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
+import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final MovieRepository movieRepository;
+
+    @Transactional
+    public Long createOrUpdateReview(User user, ReviewRequest req) {
+
+        Review saved = upsertReview(user, req);
+        return saved.getId();
+    }
+
+    @Transactional
+    public Review upsertReview(User user, ReviewRequest req) {
+        MovieDB movie = movieRepository.findById(req.getMovieId())
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "영화를 찾을 수 없습니다.")
+                );
+
+        Review review = reviewRepository
+                .findByUserAndMovie(user, movie)
+                .orElseGet(() -> {
+                    Review r = new Review();
+                    r.setUser(user);
+                    r.setMovie(movie);
+                    return r;
+                });
+
+        boolean hasScore   = req.getScore() != null;
+        boolean hasContent = req.getContent() != null && !req.getContent().isBlank();
+        if (!hasScore && !hasContent) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "score 또는 content 중 하나는 입력해야 합니다."
+            );
+        }
+
+        if (hasScore) {
+            double score = req.getScore();
+            if (score < 1 || score > 5) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "score는 1~5 사이여야 합니다."
+                );
+            }
+            review.setScore(score);
+        }
+        if (hasContent) {
+            review.setContent(req.getContent());
+        }
+
+        Review savedReview = reviewRepository.save(review);
+
+        // 평균·카운트 재계산
+        List<Review> scored = reviewRepository.findAllByMovie_Id(movie.getId());
+        double sum = scored.stream()
+                .filter(r -> r.getScore() != null)
+                .mapToDouble(Review::getScore)
+                .sum();
+        long count = scored.stream()
+                .filter(r -> r.getScore() != null)
+                .count();
+        double avg = count > 0 ? sum / count : 0.0;
+
+        movie.setVoteAverage(avg);
+        movie.setVoteCount((int) count);
+        movieRepository.save(movie);
+
+        return savedReview;
+    }
 
     public List<ReviewResponse> findByUser(User user) {
         return reviewRepository.findAllByUser(user)
