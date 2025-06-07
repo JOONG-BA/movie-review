@@ -8,19 +8,26 @@ import MovieComments from "@/components/moive/detail/MovieComments.jsx";
 import MovieGallery from "@/components/moive/detail/MovieGallery.jsx";
 import MovieVideos from "@/components/moive/detail/MovieVideos.jsx";
 import {getMovieDetail} from "@/pages/api/movieApi.js";
+import LoadingSpinner from "@/components/ui/LoadingSpinner.jsx";
 
 export default function MovieDetailPage() {
     const { movieId } = useParams();
-    const [movie, setMovie] = useState(null);
 
+    const [movie, setMovie] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        setLoading(true); // 요청 시작 시 로딩
         getMovieDetail(movieId)
-            .then(res => { setMovie(res); console.log(res); })
-            .catch(console.error);
-    }, []);
+            .then(res => {
+                setMovie(res);
+                console.log(res);
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, [movieId]);
 
-    if (!movie) return <div>로딩 중...</div>;
+    if (loading) return  <LoadingSpinner />;
 
     return (
         <div className="mb-10">

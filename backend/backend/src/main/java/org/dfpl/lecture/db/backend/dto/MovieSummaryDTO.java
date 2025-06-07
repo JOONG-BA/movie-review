@@ -9,6 +9,7 @@ public class MovieSummaryDTO {
     private String title;
     private String originalTitle;
     private String overview;
+    private Double popularity;
     private String releaseDate;
     private Double voteAverage;
     private Integer voteCount;

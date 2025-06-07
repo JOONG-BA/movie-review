@@ -7,22 +7,30 @@ import {NextArrow} from "@/components/slider/PrevArrow.jsx";
 import {PrevArrow} from "@/components/slider/NextArrow.jsx";
 import {useEffect, useState} from "react";
 import {getPopularByGenreFromApi, getPopularFromApi} from "@/pages/api/movieApi.js";
+import LoadingSpinner from "@/components/ui/LoadingSpinner.jsx";
 
 export const MovieSlide = ({ title, genre }) => {
     const [movies, setMovies] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if(genre === null)
-        {
-            getPopularFromApi()
-                .then(res => {setMovies(res)})
-                .catch(console.error);
-        }else{
-            getPopularByGenreFromApi(genre)
-                .then(res => {setMovies(res); console.log(res)})
-                .catch(console.error);
-        }
-    }, []);
+        setLoading(true);
+
+        const fetchMovies = genre === null
+            ? getPopularFromApi()
+            : getPopularByGenreFromApi(genre);
+
+        fetchMovies
+            .then(res => {
+                setMovies(res.content);
+            })
+            .catch(console.error)
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [genre]);
+
+    if (loading) return <LoadingSpinner />;
 
     const settings = {
         dots: false,

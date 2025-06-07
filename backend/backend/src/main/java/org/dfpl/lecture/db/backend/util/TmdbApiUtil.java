@@ -71,4 +71,5 @@ public class TmdbApiUtil {
                 ? path + "&language=" + LANGUAGE + "&region=" + REGION
                 : path + "?language=" + LANGUAGE + "&region=" + REGION;
     }
+
 }

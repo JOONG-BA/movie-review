@@ -3,18 +3,49 @@ package org.dfpl.lecture.db.backend.repository;
 import org.dfpl.lecture.db.backend.entity.MovieDB;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MovieRepository extends JpaRepository<MovieDB, Long> {
 
     /**
-     * 특정 장르 ID (genre.id) 를 가진 영화들을
-     * voteCount(투표 수) 기준 내림차순(인기순)으로 페이징 조회합니다.
+     * 1) 전체를 popularity 내림차순으로 페이징 조회
+     *    (컨트롤러에서 Pageable에 Sort.by("popularity").descending()을 설정해도 무방합니다.)
      */
-    Page<MovieDB> findByGenres_IdOrderByVoteCountDesc(Long genreId, Pageable pageable);
+    Page<MovieDB> findAllByOrderByPopularityDesc(Pageable pageable);
 
-    // 글로벌 인기순(페이징) 조회: 기본 findAll(Pageable) + Sort 사용 가능
-    // List<MovieDB> findAllByOrderByVoteCountDesc(Pageable pageable);
+    /**
+     * 2) 특정 장르 ID(genre1~4 칼럼 중 하나에 해당)인 영화만 뽑아서
+     *    popularity 내림차순으로 페이징 조회
+     */
+    @Query("""
+        SELECT m 
+        FROM MovieDB m 
+        WHERE m.genre1 = :genreId 
+           OR m.genre2 = :genreId 
+           OR m.genre3 = :genreId 
+           OR m.genre4 = :genreId
+        ORDER BY m.popularity DESC
+        """)
+    Page<MovieDB> findByGenreIdOrderByPopularityDesc(
+            @Param("genreId") Long genreId,
+            Pageable pageable
+    );
+
+    /**
+     * 3) 제목(title) 또는 개요(overview)에 keyword가 포함된 영화를
+     *    popularity 내림차순으로 페이징 조회
+     */
+    @Query("""
+        SELECT m
+        FROM MovieDB m
+        WHERE (m.title)   LIKE (CONCAT('%', :kw, '%'))
+        ORDER BY m.popularity DESC
+        """)
+    Page<MovieDB> searchByKeywordOrderByPopularityDesc(
+            @Param("kw") String keyword,
+            Pageable pageable
+    );
 }

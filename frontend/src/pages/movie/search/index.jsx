@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import MovieList from "@/components/moive/search/MovieList.jsx";
 import {searchMovies} from "@/pages/api/movieApi.js";
+import InlineLoadingSpinner from "@/components/ui/InlineLodingSpinner.jsx";
+import LoadingSpinner from "@/components/ui/LoadingSpinner.jsx";
 
 export default function SearchPage() {
     const [searchParams] = useSearchParams();
@@ -10,37 +12,49 @@ export default function SearchPage() {
     const [movies, setMovies] = useState([]);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
     const loaderRef = useRef(null);
 
-    const fetchMovies = useCallback(async () => {
+    // fetchMovies에서 page를 받도록 변경
+    const fetchMovies = useCallback(async (targetPage) => {
         if (!query) return;
+        setLoading(true);
         try {
-            const newMovies = await searchMovies(query, page);
-            setMovies((prev) => [...prev, ...newMovies]);
-            if (newMovies.length === 0) {
+
+            const newMovies = await searchMovies(query, targetPage);
+            if (targetPage === 1) {
+                setMovies(newMovies.content);
+            } else {
+                setMovies((prev) => [...prev, ...newMovies.content]);
+            }
+            if (newMovies.content.length === 0) {
                 setHasMore(false);
             }
         } catch (error) {
             console.error(error);
+        } finally {
+            setLoading(false);
+            setInitialLoading(false);
         }
-    }, [query, page]);
-
-    // 쿼리가 바뀌면 초기화
-    useEffect(() => {
-        setMovies([]);
-        setPage(1);
-        setHasMore(true);
     }, [query]);
 
     useEffect(() => {
-        fetchMovies();
-    }, [fetchMovies]);
+        setMovies([]);
+        setHasMore(true);
+
+        setPage(1);
+    }, [query]);
+
+    useEffect(() => {
+        fetchMovies(page);
+    }, [page, fetchMovies]);
 
     useEffect(() => {
         if (!hasMore) return;
         const observer = new IntersectionObserver(
             ([entry]) => {
-                if (entry.isIntersecting) {
+                if (entry.isIntersecting && !loading) {
                     setPage((prev) => prev + 1);
                 }
             },
@@ -50,13 +64,16 @@ export default function SearchPage() {
         return () => {
             if (loaderRef.current) observer.unobserve(loaderRef.current);
         };
-    }, [hasMore]);
+    }, [hasMore, loading]);
+
+    if (initialLoading) return <LoadingSpinner />;
 
     return (
         <div className="container mt-20">
             <MovieList movies={movies} />
+            {loading && <InlineLoadingSpinner />}
             <div ref={loaderRef} style={{ height: "20px" }} />
-            {!hasMore && <p className="text-center mt-4">더 이상 영화가 없습니다.</p>}
+            {!hasMore && <p className="text-center mt-4"></p>}
         </div>
     );
 }

@@ -43,10 +43,9 @@ public class AuthService {
             throw new IllegalArgumentException("이메일 또는 비밀번호가 틀렸습니다");
         }
 
-        // 두 번째 인수로 권한 리스트를 넘겨준다
         return jwtUtil.generateToken(
                 user.getEmail(),
-                List.of("USER")
+                List.of("ROLE_USER")
         );
     }
 }

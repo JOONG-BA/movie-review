@@ -6,7 +6,7 @@ import lombok.Data;
 public class MyReviewDTO {
     private Long reviewId;
     private Long movieId;
-    private int score;
+    private Integer score;
     private String content;
 
     public MyReviewDTO(Long reviewId, Long movieId, int score, String content) {

@@ -26,15 +26,34 @@ public class ReviewService {
                 .stream()
                 .map(r -> new ReviewResponse(
                         r.getMovie().getTitle(),
-                        r.getScore(),
-                        r.getContent()
+                        // null-safe 처리 추가
+                        r.getScore() != null ? r.getScore() : 0,
+                        r.getContent(),
+                        r.getUser().getNickname()
                 ))
                 .toList();
     }
+
+
     public Long create(User user, ReviewRequest request) {
         MovieDB movie = movieRepository.findById(request.getMovieId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "영화를 찾을 수 없습니다"));
+
+        boolean hasScore = request.getScore() != null;
+        boolean hasContent = request.getContent() != null && !request.getContent().isBlank();
+
+        if (!hasScore && !hasContent) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "score 또는 content 중 하나는 반드시 입력해야 합니다.");
+        }
+
+        if (hasScore && (request.getScore() < 1 || request.getScore() > 5)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "score는 1~5 사이의 정수여야 합니다.");
+        }
 
         Review review = Review.builder()
                 .movie(movie)
@@ -57,5 +76,26 @@ public class ReviewService {
         }
 
         reviewRepository.delete(review);
+    }
+
+    public List<ReviewResponse> findByMovieId(Long movieId) {
+        // (선택 사항) movieId가 실제 존재하는 영화인지 확인하고 싶다면:
+        MovieDB movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "해당 영화가 없습니다. id=" + movieId
+                ));
+
+        // Repository에서 movie_id가 일치하는 모든 Review 엔티티 가져오기
+        List<Review> reviews = reviewRepository.findAllByMovie_Id(movieId);
+
+        // Review → ReviewResponse DTO 변환
+        return reviews.stream()
+                .map(r -> new ReviewResponse(
+                        r.getMovie().getTitle(),
+                        r.getScore(),
+                        r.getContent(),
+                        r.getUser().getNickname()
+                ))
+                .toList();
     }
 }
