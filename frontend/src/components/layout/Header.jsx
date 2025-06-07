@@ -6,6 +6,7 @@ import { LoginDialog } from "@/components/ui/LoginDialog.jsx";
 import { SignupDialog } from "@/components/ui/SignupDialog.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Input } from "@/components/ui/input.jsx";
+import MovieSearchForm from "@/components/moive/search/MovieSearchForm.jsx";
 
 const Header = () => {
     const { isLoggedIn, logout } = useContext(AuthContext);
@@ -32,15 +33,7 @@ const Header = () => {
 
                 {/* 오른쪽: 검색창 + 버튼들 */}
                 <div className="flex items-center gap-3">
-                    <form className="relative hidden sm:block">
-                        <Input
-                            className="bg-gray-800 rounded-xs w-[200px] md:w-[250px] border-0"
-                            placeholder="찾는 영화가 있으신가요?"
-                        />
-                        <button type="submit" className="absolute right-2 top-2 text-white">
-                            <IoMdSearch size={20} />
-                        </button>
-                    </form>
+                    <MovieSearchForm/>
 
                     {!isLoggedIn ? (
                         <>
