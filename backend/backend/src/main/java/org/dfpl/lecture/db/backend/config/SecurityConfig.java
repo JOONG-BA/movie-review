@@ -42,6 +42,8 @@ public class SecurityConfig {
                                 "/api/users/me",
                                 "/api/users/me/**")
                         .hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/api/users/me/favorites/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/me/favorites/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
 
