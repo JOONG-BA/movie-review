@@ -63,7 +63,20 @@ public class ReviewService {
                 .build();
 
         Review saved = reviewRepository.save(review);
+
+        if(request.getScore() != null){
+            Double oldAvg = movie.getVoteAverage() != null ? movie.getVoteAverage() : 0.0;
+            Integer oldCount = movie.getVoteCount()  != null ? movie.getVoteCount()  : 0;
+            Double halfOldAvg = oldAvg / 2.0;
+            Double newHalfAvg = (halfOldAvg * oldCount + request.getScore()) / (oldCount + 1);
+            movie.setVoteAverage(newHalfAvg);
+            movie.setVoteCount(oldCount + 1);
+            movieRepository.save(movie);
+        }
+
         return saved.getId();
+
+
     }
 
     public void delete(Long reviewId, User currentUser) {
