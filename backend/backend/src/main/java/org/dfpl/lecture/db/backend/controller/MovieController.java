@@ -3,9 +3,12 @@ package org.dfpl.lecture.db.backend.controller;
 import lombok.RequiredArgsConstructor;
 import org.dfpl.lecture.db.backend.dto.MovieDetailDTO;
 import org.dfpl.lecture.db.backend.dto.MovieSummaryDTO;
+import org.dfpl.lecture.db.backend.entity.User;
+import org.dfpl.lecture.db.backend.service.FavoriteService;
 import org.dfpl.lecture.db.backend.service.MovieService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -17,6 +20,7 @@ import java.util.List;
 public class MovieController {
 
     private final MovieService movieService;
+    private final FavoriteService favoriteService;
 
     // ─────────────────────────────────────────────────────────────────────
     // 1) DB 검색 (제목 or 개요 LIKE) → 페이징 DTO 반환
@@ -60,10 +64,24 @@ public class MovieController {
     }
 
     @GetMapping("/detail/{id}")
-    public ResponseEntity<MovieDetailDTO> getMovieDetail(@PathVariable Long id) throws Exception {
+    public ResponseEntity<MovieDetailDTO> getMovieDetail(
+            @PathVariable Long id,
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal
+    ) throws Exception {
+
         MovieDetailDTO detail = movieService.getMovieDetail(id);
+
+        if (principal != null) {
+            String email = principal.getUsername();
+            boolean fav   = favoriteService.isFavorite(email, id);
+            detail.setFavorite(fav);
+        } else {
+            detail.setFavorite(false);
+        }
+
         return ResponseEntity.ok(detail);
     }
+
 
 
     @PostMapping("/load-all")
