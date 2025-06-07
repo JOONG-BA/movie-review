@@ -16,11 +16,11 @@ export default function MovieList({movies}){
                                 <p className="mt-2 text-base sm:text-lg font-semibold">{movie.title}</p>
                                 <div className="text-sm hidden sm:block font-medium">
                                     {movie.releaseDate}
-                                    <p className="inline mx-1">
-                                        {movie.genres.map((g, idx) => (
-                                            <span key={idx} className="mr-1">· {g.name}</span>
-                                        ))}
-                                    </p>
+                                    {/*<p className="inline mx-1">*/}
+                                    {/*    {movie.genres.map((g, idx) => (*/}
+                                    {/*        <span key={idx} className="mr-1">· {g.name}</span>*/}
+                                    {/*    ))}*/}
+                                    {/*</p>*/}
                                 </div>
                                 <p className="flex items-center text-xs sm:text-sm text-gray-500">
                                     평균 <IoMdStar className="mx-1" /> {movie.voteAverage}
