@@ -85,4 +85,11 @@ public class FavoriteService {
                 .orElseThrow(() -> new IllegalArgumentException("영화를 찾을 수 없습니다: id=" + movieId));
         return favoriteRepository.existsByUserAndMovie(user, movie);
     }
+
+    @Transactional(readOnly = true)
+    public boolean isFavorite(User user, Long movieId) {
+        MovieDB movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new IllegalArgumentException("영화를 찾을 수 없습니다: id=" + movieId));
+        return favoriteRepository.existsByUserAndMovie(user, movie);
+    }
 }
