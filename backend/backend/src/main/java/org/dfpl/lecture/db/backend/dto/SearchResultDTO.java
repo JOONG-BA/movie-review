@@ -10,14 +10,14 @@ public class SearchResultDTO {
     private Long id;              // TMDB 영화 ID
     private String title;         // 영화 제목
     private String releaseDate;   // 개봉일(문자열)
-    private String posterPath;    // 포스터 파일 경로 (file_path 형태)
+    private String posterUrl;    // 포스터 파일 경로 (file_path 형태)
     private Double voteAverage;   // TMDB 평점
 
-    public SearchResultDTO(Long id, String title, String releaseDate, String posterPath, Double voteAverage) {
+    public SearchResultDTO(Long id, String title, String releaseDate, String posterUrl, Double voteAverage) {
         this.id = id;
         this.title = title;
         this.releaseDate = releaseDate;
-        this.posterPath = posterPath;
+        this.posterUrl = posterUrl;
         this.voteAverage = voteAverage;
     }
 }

@@ -3,8 +3,9 @@ package org.dfpl.lecture.db.backend.controller;
 import lombok.RequiredArgsConstructor;
 import org.dfpl.lecture.db.backend.dto.MovieDetailDTO;
 import org.dfpl.lecture.db.backend.dto.MovieSummaryDTO;
+import org.dfpl.lecture.db.backend.dto.SearchResultDTO;
 import org.dfpl.lecture.db.backend.entity.User;
-import org.dfpl.lecture.db.backend.service.FavoriteService;
+import org.dfpl.lecture.db.backend.service.FavoriteService;\
 import org.dfpl.lecture.db.backend.service.MovieService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +28,12 @@ public class MovieController {
     //    GET /api/movies/db/search?keyword={키워드}&page={페이지}&size={크기}
     // ─────────────────────────────────────────────────────────────────────
     @GetMapping("/search")
-    public ResponseEntity<Page<MovieSummaryDTO>> searchInDb(
-            @RequestParam("keyword") String keyword,
+    public ResponseEntity<Page<SearchResultDTO>> searchInDb(
+            @RequestParam("query") String query,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "20") int size
     ) {
-        Page<MovieSummaryDTO> dtoPage = movieService.searchMoviesInDb(keyword, page, size);
+        Page<SearchResultDTO> dtoPage = movieService.searchMoviesInDb(query, page, size);
         return ResponseEntity.ok(dtoPage);
     }
 
@@ -40,12 +41,12 @@ public class MovieController {
     // 2) DB에 저장된 전체 영화 → 인기순 페이징 DTO 반환
     //    GET /api/movies/db/popular?page={페이지}&size={크기}
     // ─────────────────────────────────────────────────────────────────────
-    @GetMapping("/popular")
-    public ResponseEntity<Page<MovieSummaryDTO>> getPopularFromDb(
+    @GetMapping("/popular/api")
+    public ResponseEntity<Page<SearchResultDTO>> getPopularFromDb(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "20") int size
     ) {
-        Page<MovieSummaryDTO> dtoPage = movieService.getPopularFromDb(page, size);
+        Page<SearchResultDTO> dtoPage = movieService.getPopularFromDb(page, size);
         return ResponseEntity.ok(dtoPage);
     }
 
@@ -53,15 +54,16 @@ public class MovieController {
     // 3) DB에서 장르별 인기순 페이징 DTO 반환
     //    GET /api/movies/db/popular/genre/{genreId}?page={페이지}&size={크기}
     // ─────────────────────────────────────────────────────────────────────
-    @GetMapping("/popular/genre/{genreId}")
-    public ResponseEntity<Page<MovieSummaryDTO>> getPopularByGenreFromDb(
-            @PathVariable Long genreId,
+    @GetMapping("/popular/genre/api")
+    public ResponseEntity<Page<SearchResultDTO>> getPopularByGenreFromDb(
+            @RequestParam("genre") Long genreId,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "20") int size
     ) {
-        Page<MovieSummaryDTO> dtoPage = movieService.getPopularByGenreFromDb(genreId, page, size);
+        Page<SearchResultDTO> dtoPage = movieService.getPopularByGenreFromDb(genreId, page, size);
         return ResponseEntity.ok(dtoPage);
     }
+
 
     @GetMapping("/detail/{id}")
     public ResponseEntity<MovieDetailDTO> getMovieDetail(
