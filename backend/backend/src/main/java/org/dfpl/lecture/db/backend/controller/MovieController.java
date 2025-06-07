@@ -14,7 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
-
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 @RestController
 @RequestMapping("/api/movies")
 @RequiredArgsConstructor
@@ -68,24 +69,25 @@ public class MovieController {
     @GetMapping("/detail/{id}")
     public ResponseEntity<MovieDetailDTO> getMovieDetail(
             @PathVariable Long id,
-            @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal
+            Authentication auth    // ← Authentication으로 변경
     ) throws Exception {
-
         MovieDetailDTO detail = movieService.getMovieDetail(id);
 
-        if (principal != null) {
-            String email = principal.getUsername();
-            boolean fav   = favoriteService.isFavorite(email, id);
+        // 익명(비로그인)이 아니면 즐겨찾기 여부 체크
+        if (auth != null
+                && auth.isAuthenticated()
+                && !(auth instanceof AnonymousAuthenticationToken)) {
+
+            String email = auth.getName();
+            boolean fav  = favoriteService.isFavorite(email, id);
             detail.setFavorite(fav);
+
         } else {
             detail.setFavorite(false);
         }
 
         return ResponseEntity.ok(detail);
     }
-
-
-
     @PostMapping("/load-all")
     public ResponseEntity<Void> loadAllMovies() {
         try {
