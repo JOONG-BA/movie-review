@@ -78,7 +78,7 @@ export default function MyPage() {
             <div className="p-2 rounded-full bg-gray-100 border border-gray-300 flex-shrink-0 w-28 h-28 overflow-hidden">
               {/* 사용자 프로필 이미지는 backend URL을 저장해두셨다면 교체 */}
               <img
-                  src="/default-avatar.png"
+                  src="https://i.pinimg.com/736x/2f/55/97/2f559707c3b04a1964b37856f00ad608.jpg"
                   alt="프로필"
                   className="w-full h-full object-cover rounded-full"
               />
