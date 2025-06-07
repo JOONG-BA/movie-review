@@ -8,65 +8,80 @@ import { Button } from "@/components/ui/button.jsx";
 import { Input } from "@/components/ui/input.jsx";
 
 const Header = () => {
-  const { isLoggedIn, logout, user } = useContext(AuthContext);
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [signupOpen, setSignupOpen] = useState(false);
+    const { isLoggedIn, logout } = useContext(AuthContext);
+    const [loginOpen, setLoginOpen] = useState(false);
+    const [signupOpen, setSignupOpen] = useState(false);
 
-  return (
-      <header className="fixed w-full z-50 bg-gray-900 text-white top-0">
-        <div className="w-full flex justify-between items-center py-3 container px-4">
+    const handleSwitchToLogin = () => {
+        setSignupOpen(false);
+        setTimeout(() => setLoginOpen(true), 100);
+    };
 
-          {/* 왼쪽: 로고 */}
-          <Link to="/" className="text-xs sm:text-3xl tracking-tighter">
-            MOVIELOG
-          </Link>
+    const handleSwitchToSignup = () => {
+        setLoginOpen(false);
+        setTimeout(() => setSignupOpen(true), 100);
+    };
 
-          {/* 오른쪽: 검색창 + 버튼들 */}
-          <div className="flex items-center gap-3">
-            <form className="relative hidden sm:block">
-              <Input
-                  className="bg-gray-800 rounded-xs w-[200px] md:w-[250px] border-0"
-                  placeholder="찾는 영화가 있으신가요?"
-              />
-              <button type="submit" className="absolute right-2 top-2 text-white">
-                <IoMdSearch size={20} />
-              </button>
-            </form>
+    return (
+        <header className="fixed w-full z-50 bg-gray-900 text-white top-0">
+            <div className="w-full flex justify-between items-center py-3 container px-4">
+                {/* 왼쪽: 로고 */}
+                <Link to="/" className="text-xs sm:text-3xl tracking-tighter">
+                    MOVIELOG
+                </Link>
 
-            {!isLoggedIn ? (
-                <>
-                  <Button variant="outline" onClick={() => setLoginOpen(true)}>
-                    로그인
-                  </Button>
-                  <Button variant="outline" onClick={() => setSignupOpen(true)}>
-                    회원가입
-                  </Button>
-                </>
-            ) : (
-                <>
-                  <Link
-                      to="/mypage"
-                      className="w-9 h-9 rounded-full overflow-hidden border border-white"
-                  >
-                    <img
-                        src={user?.imageUrl || "/default-avatar.png"}
-                        alt="profile"
-                        className="object-cover w-full h-full"
-                    />
-                  </Link>
-                  <Button variant="ghost" onClick={logout}>
-                    로그아웃
-                  </Button>
-                </>
-            )}
-          </div>
-        </div>
+                {/* 오른쪽: 검색창 + 버튼들 */}
+                <div className="flex items-center gap-3">
+                    <form className="relative hidden sm:block">
+                        <Input
+                            className="bg-gray-800 rounded-xs w-[200px] md:w-[250px] border-0"
+                            placeholder="찾는 영화가 있으신가요?"
+                        />
+                        <button type="submit" className="absolute right-2 top-2 text-white">
+                            <IoMdSearch size={20} />
+                        </button>
+                    </form>
 
-        {/* 모달 */}
-        <LoginDialog open={loginOpen} setOpen={setLoginOpen} />
-        <SignupDialog open={signupOpen} setOpen={setSignupOpen} />
-      </header>
-  );
+                    {!isLoggedIn ? (
+                        <>
+                            <Button variant="outline" onClick={() => setLoginOpen(true)}>
+                                로그인
+                            </Button>
+                            <Button variant="outline" onClick={() => setSignupOpen(true)}>
+                                회원가입
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <img
+                                src="https://i.pinimg.com/736x/2f/55/97/2f559707c3b04a1964b37856f00ad608.jpg"
+                                alt="profile"
+                                className="object-cover w-9 h-9 rounded-full border border-white"
+                            />
+                            <Link to="/mypage">
+                                <Button variant="ghost">마이페이지</Button>
+                            </Link>
+                            <Button variant="ghost" onClick={logout}>
+                                로그아웃
+                            </Button>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* 모달 */}
+            <LoginDialog
+                open={loginOpen}
+                setOpen={setLoginOpen}
+                onSwitch={handleSwitchToSignup}
+            />
+            <SignupDialog
+                open={signupOpen}
+                setOpen={setSignupOpen}
+                onSwitch={handleSwitchToLogin}
+            />
+        </header>
+    );
 };
 
 export default Header;
