@@ -12,29 +12,33 @@ export default function SearchPage() {
     const [hasMore, setHasMore] = useState(true);
     const loaderRef = useRef(null);
 
-    const fetchMovies = useCallback(async () => {
+    // fetchMovies에서 page를 받도록 변경
+    const fetchMovies = useCallback(async (targetPage) => {
         if (!query) return;
         try {
-            const newMovies = await searchMovies(query, page);
-            setMovies((prev) => [...prev, ...newMovies.content]);
+            const newMovies = await searchMovies(query, targetPage);
+            if (targetPage === 1) {
+                setMovies(newMovies.content);
+            } else {
+                setMovies((prev) => [...prev, ...newMovies.content]);
+            }
             if (newMovies.content.length === 0) {
                 setHasMore(false);
             }
         } catch (error) {
             console.error(error);
         }
-    }, [query, page]);
-
-    // 쿼리가 바뀌면 초기화
-    useEffect(() => {
-        setMovies([]);
-        setPage(1);
-        setHasMore(true);
     }, [query]);
 
     useEffect(() => {
-        fetchMovies();
-    }, [fetchMovies]);
+        setMovies([]);
+        setHasMore(true);
+        setPage(1);
+    }, [query]);
+
+    useEffect(() => {
+        fetchMovies(page);
+    }, [page, fetchMovies]);
 
     useEffect(() => {
         if (!hasMore) return;
