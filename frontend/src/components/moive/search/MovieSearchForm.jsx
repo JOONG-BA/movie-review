@@ -4,22 +4,22 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { IoMdSearch } from "react-icons/io";
 
-export default function MovieSearchForm() {
+export default function MovieSearchForm({ onSearch }) {
     const [query, setQuery] = useState("");
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        onSearch?.();
         if (query.trim()) {
             navigate(`/movie/search?query=${encodeURIComponent(query)}`);
         }
     };
 
-
     return (
         <form className="flex relative" onSubmit={handleSubmit}>
             <Input
-                className="bg-gray-800 rounded-xs w-[250px] border-0"
+                className="bg-white/5 rounded-xs w-full sm:w-[250px] border-0"
                 placeholder="찾는 영화가 있으신가요?"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
