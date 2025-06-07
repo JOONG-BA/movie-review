@@ -27,7 +27,7 @@ public class ReviewService {
                 .map(r -> new ReviewResponse(
                         r.getMovie().getTitle(),
                         // null-safe 처리 추가
-                        r.getScore() != null ? r.getScore() : 0,
+                        r.getScore() != null ? r.getScore() : 0.0,
                         r.getContent(),
                         r.getUser().getNickname()
                 ))
@@ -58,12 +58,25 @@ public class ReviewService {
         Review review = Review.builder()
                 .movie(movie)
                 .user(user)
-                .score(request.getScore())
+                .score(Double.valueOf(request.getScore()))
                 .content(request.getContent())
                 .build();
 
         Review saved = reviewRepository.save(review);
+
+        if(request.getScore() != null){
+            Double oldAvg = movie.getVoteAverage() != null ? movie.getVoteAverage() : 0.0;
+            Integer oldCount = movie.getVoteCount()  != null ? movie.getVoteCount()  : 0;
+            Double halfOldAvg = oldAvg / 2.0;
+            Double newHalfAvg = (halfOldAvg * oldCount + request.getScore()) / (oldCount + 1);
+            movie.setVoteAverage(newHalfAvg);
+            movie.setVoteCount(oldCount + 1);
+            movieRepository.save(movie);
+        }
+
         return saved.getId();
+
+
     }
 
     public void delete(Long reviewId, User currentUser) {
