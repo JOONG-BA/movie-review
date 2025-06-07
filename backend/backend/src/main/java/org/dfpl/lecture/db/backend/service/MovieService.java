@@ -290,11 +290,21 @@ public class MovieService {
         return dto;
     }
 
+    private SearchResultDTO toSearchResultDto(MovieDB entity) {
+        return new SearchResultDTO(
+                entity.getId(),
+                entity.getTitle(),
+                entity.getReleaseDate(),
+                entity.getPosterUrl(),
+                entity.getVoteAverage()
+        );
+    }
+
     /**
      * 1) DB에서 “제목 or 개요 LIKE” 검색 → DTO 페이지로 리턴
      */
     @Transactional(readOnly = true)
-    public Page<MovieSummaryDTO> searchMoviesInDb(
+    public Page<SearchResultDTO> searchMoviesInDb(
             String keyword, int page, int size
     ) {
         // Pageable에 인기순 정렬을 붙여서 생성
@@ -302,29 +312,29 @@ public class MovieService {
         // Repository의 custom query 호출
         Page<MovieDB> entityPage = movieRepository.searchByKeywordOrderByPopularityDesc(keyword, pageable);
         // 엔티티 페이지 → DTO 페이지로 매핑
-        return entityPage.map(this::toSummaryDto);
+        return entityPage.map(this::toSearchResultDto);
     }
 
     /**
      * 2) DB에 저장된 전체 영화 중 인기순 페이징 조회 → DTO 페이지로 리턴
      */
     @Transactional(readOnly = true)
-    public Page<MovieSummaryDTO> getPopularFromDb(int page, int size) {
+    public Page<SearchResultDTO> getPopularFromDb(int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("popularity").descending());
         Page<MovieDB> entityPage = movieRepository.findAllByOrderByPopularityDesc(pageable);
-        return entityPage.map(this::toSummaryDto);
+        return entityPage.map(this::toSearchResultDto);
     }
 
     /**
      * 3) DB에서 특정 장르별로 인기순 페이징 조회 → DTO 페이지로 리턴
      */
     @Transactional(readOnly = true)
-    public Page<MovieSummaryDTO> getPopularByGenreFromDb(
+    public Page<SearchResultDTO> getPopularByGenreFromDb(
             Long genreId, int page, int size
     ) {
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<MovieDB> entityPage = movieRepository.findByGenreIdOrderByPopularityDesc(genreId, pageable);
-        return entityPage.map(this::toSummaryDto);
+        return entityPage.map(this::toSearchResultDto);
     }
 
 
