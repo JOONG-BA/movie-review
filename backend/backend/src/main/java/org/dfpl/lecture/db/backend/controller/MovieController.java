@@ -5,7 +5,7 @@ import org.dfpl.lecture.db.backend.dto.MovieDetailDTO;
 import org.dfpl.lecture.db.backend.dto.MovieSummaryDTO;
 import org.dfpl.lecture.db.backend.dto.SearchResultDTO;
 import org.dfpl.lecture.db.backend.entity.User;
-import org.dfpl.lecture.db.backend.service.FavoriteService;\
+import org.dfpl.lecture.db.backend.service.FavoriteService;
 import org.dfpl.lecture.db.backend.service.MovieService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
