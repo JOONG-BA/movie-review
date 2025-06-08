@@ -48,8 +48,38 @@ export default function MyPage() {
                     }
                 })
             );
+            const favoritesWithMovieData = await Promise.all(
+                dto.favoriteMovies.map(async (fav) => {
+                    try {
+                        const mvRes = await fetch(
+                            `http://localhost:8080/api/movies/detail/${fav.movieId}`,
+                            {
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${token}`,
+                                },
+                            }
+                        );
+                        const movie = await mvRes.json();
+                        return {
+                            ...fav,
+                            title: movie.title,
+                            posterPath: movie.poster_path || null,
+                            originalTitle: movie.originalTitle || "",
+                            releaseDate: movie.releaseDate || movie.releaseYear || "",
+                            genres: Array.isArray(movie.genres) ? movie.genres : [],
+                            country: movie.country || "",
+                            runtime: movie.runtime || 0,
+                        };
+                    } catch {
+                        // 실패 시 DTO 그대로
+                        return { ...fav, genres: [], releaseDate: "", country: "", runtime: 0 };
+                    }
+                })
+            );
 
-            setProfile({ ...dto, recentReviews: withMovie });
+
+            setProfile({ ...dto, recentReviews: withMovie, favoriteMovies: favoritesWithMovieData, });
         } catch (e) {
             setError(e.message);
         } finally {
@@ -202,6 +232,24 @@ export default function MyPage() {
                                         <h4 className="text-xl font-semibold text-left">
                                             {movie.title}
                                         </h4>
+                                        {movie.originalTitle && (
+                                            <p className="text-sm text-gray-500 mt-1 text-left">
+                                                {movie.originalTitle}
+                                            </p>
+                                        )}
+                                        <p className="text-sm text-gray-500 mt-2 text-left">
+                                            {movie.releaseDate}
+                                            {movie.genres.length
+                                                ? ` · ${movie.genres.join("·")}`
+                                                : ""}
+                                            {movie.country
+                                                ? ` · ${movie.country}`
+                                                : ""}
+                                        </p>
+                                        <p className="text-sm text-gray-500 mt-1 text-left">
+                                            {movie.runtime}분
+                                        </p>
+
                                     </div>
                                 </div>
                             ))}
