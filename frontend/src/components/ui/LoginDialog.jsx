@@ -34,10 +34,16 @@ export function LoginDialog({ open, setOpen, onSwitch }) {
       }
 
       localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
       setIsLoggedIn(true);
       setUser(data.user);
+
+      console.log(data.user);
+
       alert("로그인 성공!");
       setOpen(false);
+
     } catch (err) {
       alert("로그인 중 오류 발생: " + err.message);
     }
