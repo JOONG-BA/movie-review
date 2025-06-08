@@ -21,13 +21,11 @@ public interface MovieRepository extends JpaRepository<MovieDB, Long> {
      *    popularity 내림차순으로 페이징 조회
      */
     @Query("""
-        SELECT m 
-        FROM MovieDB m 
-        WHERE m.genre1 = :genreId 
-           OR m.genre2 = :genreId 
-           OR m.genre3 = :genreId 
-           OR m.genre4 = :genreId
-        ORDER BY m.popularity DESC
+        SELECT m
+          FROM MovieDB m
+          JOIN m.movieGenres mg
+         WHERE mg.genre.id = :genreId
+         ORDER BY m.popularity DESC
         """)
     Page<MovieDB> findByGenreIdOrderByPopularityDesc(
             @Param("genreId") Long genreId,

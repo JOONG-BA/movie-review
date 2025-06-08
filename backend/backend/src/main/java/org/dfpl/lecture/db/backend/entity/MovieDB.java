@@ -51,5 +51,13 @@ public class MovieDB {
 
     @Column(name = "genre4")
     private Long genre4;
+
+    // ★ 조인 엔티티만 남기기
+    @OneToMany(
+            mappedBy = "movie",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<MovieGenre> movieGenres = new ArrayList<>();
 }
 
