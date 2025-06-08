@@ -3,7 +3,7 @@ import axios from 'axios';
 const API_BASE = '/api/movies';
 
 /**
- * 영화 상세 정보 조회 (by TMDB ID)
+ * 영화 상세 정보 조회
  * @param {number} id
  * @returns {Promise<MovieDetailDTO>}
  */
@@ -13,7 +13,6 @@ export const getMovieDetail = async (id) => {
 };
 
 /**
- * TMDB API 영화 검색
  * @param {string} query - 검색어
  * @param {number} page - 페이지 번호 (기본값: 1)
  * @returns {Promise<SearchResultDTO[]>}
@@ -39,7 +38,6 @@ export const getAllPopular = async (page = 0, size = 10) => {
 };
 
 /**
- * TMDB 인기 영화 API 결과 조회
  * @param {number} page
  * @returns {Promise<SearchResultDTO[]>}
  */
@@ -51,8 +49,8 @@ export const getPopularFromApi = async (page = 1) => {
 };
 
 /**
- * TMDB 인기 장르별 영화 조회
- * @param {number} genreId - TMDB 장르 ID
+ * 인기 장르별 영화 조회
+ * @param {number} genreId -
  * @param {number} page
  * @returns {Promise<SearchResultDTO[]>}
  */
