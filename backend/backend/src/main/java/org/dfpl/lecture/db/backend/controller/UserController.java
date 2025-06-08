@@ -80,7 +80,6 @@ public class UserController {
 
         List<FavoriteMovieDTO> top3Favs = allFavs.stream()
                 .sorted(Comparator.comparing(Favorite::getCreatedAt).reversed())
-                .limit(3)
                 .map(fav -> new FavoriteMovieDTO(
                         fav.getMovie().getId(),
                         fav.getMovie().getTitle(),
