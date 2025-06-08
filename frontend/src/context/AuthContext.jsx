@@ -7,9 +7,13 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
 
   useEffect(() => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
     if (token) {
       setIsLoggedIn(true)
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
       // 나중에 사용자 정보도 불러오면 여기서 setUser() 하면 됨
     } else {
       setIsLoggedIn(false)
@@ -19,6 +23,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("token")
+    localStorage.removeItem("user");
     setIsLoggedIn(false)
     setUser(null)
   }
