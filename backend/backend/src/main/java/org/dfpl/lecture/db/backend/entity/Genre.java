@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.dfpl.lecture.db.backend.dto.GenreDTO;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -24,4 +25,12 @@ public class Genre {
 
     @Column(nullable = false, length = 100)
     private String name;
+
+    @OneToMany(
+            mappedBy = "genre",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+
+    private List<MovieGenre> movieGenres = new ArrayList<>();
 }

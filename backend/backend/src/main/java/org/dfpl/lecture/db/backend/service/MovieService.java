@@ -293,6 +293,7 @@ public class MovieService {
             Long genreId, int page, int size
     ) {
         Pageable pageable = PageRequest.of(page - 1, size);
+        // 여기가 조인 버전으로 바뀐 메서드를 호출하게 됩니다
         Page<MovieDB> entityPage = movieRepository.findByGenreIdOrderByPopularityDesc(genreId, pageable);
         return entityPage.map(this::toSearchResultDto);
     }
