@@ -70,10 +70,24 @@ export default function SearchPage() {
 
     return (
         <div className="container mt-20">
+            {!loading && !initialLoading && movies.length === 0 && query &&  (
+                <div className="absolute top-0 left-0 right-0 pb-24 flex flex-col items-center justify-center text-center text-gray-500 h-full">
+                    <div className="text-5xl mb-3">🎬</div>
+                    <p className="text-lg font-semibold">결과에 해당하는 영화가 없습니다</p>
+                    <p className="text-sm text-gray-400 mt-1">
+                        다른 검색어로 다시 시도해보세요!
+                    </p>
+                </div>
+            )}
+
             <MovieList movies={movies} />
             {loading && <InlineLoadingSpinner />}
             <div ref={loaderRef} style={{ height: "20px" }} />
-            {!hasMore && <p className="text-center mt-4"></p>}
+            {!loading && hasMore === false && movies.length > 0 &&
+                <div className="mt-10 mx-auto w-fit px-4 py-2 rounded-xl bg-gray-100 text-gray-500 text-sm shadow-sm">
+                    🎬 더 이상 불러올 영화가 없습니다
+                </div>
+            }
         </div>
     );
 }
