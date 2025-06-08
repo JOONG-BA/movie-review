@@ -183,7 +183,7 @@ export default function MyPage() {
                                     </p>
                                     <p className="mt-3 text-sm text-gray-600 text-left">
                                         {profile.nickname} |{" "}
-                                        {review.createdAt ? review.createdAt : "작성일 없음"}
+                                        {review.createdAt ? review.createdAt : "커멘트 없음"}
                                     </p>
                                 </div>
                             </div>
