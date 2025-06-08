@@ -172,7 +172,7 @@ export default function MyPage() {
                       </h4>
                       <div className="flex items-center mt-2">
                         <span className="text-lg">★</span>
-                        <span className="ml-1 text-lg">{review.score}/10</span>
+                        <span className="ml-1 text-lg">{review.score}/5</span>
                       </div>
                       <p className="mt-2 text-base leading-relaxed text-left">
                         {review.content}
