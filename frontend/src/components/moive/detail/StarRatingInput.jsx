@@ -1,10 +1,16 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {FaStar, FaRegStar, FaRegStarHalfStroke} from 'react-icons/fa6';
 import {FaRegStarHalf, FaStarHalf} from "react-icons/fa";
 
-export default function StarRatingInput({onRate}) {
+export default function StarRatingInput({onRate, initial = 0}) {
     const [hovered, setHovered] = useState(null);
-    const [selected, setSelected] = useState(0);
+    const [selected, setSelected] = useState(initial);
+
+    useEffect(() => {
+        if (initial != null && initial !== selected) {
+            setSelected(initial);
+        }
+    }, [initial]);
 
     const handleClick = (e, index) => {
         const {left, width} = e.currentTarget.getBoundingClientRect();
@@ -49,8 +55,7 @@ export default function StarRatingInput({onRate}) {
     };
 
     return (
-        <div
-            className="flex w-full flex-col mb-5 pb-5 border-b border-b-gray-300 md:pb-0 md:border-b-0 md:mb-0 flex-1 items-center lg:items-start">
+        <div className="flex w-full flex-col mb-5 pb-5 border-b border-b-gray-300 md:pb-0 md:border-b-0 md:mb-0 flex-1 items-center lg:items-start">
             <div className="flex cursor-pointer">
                 {[1, 2, 3, 4, 5].map((i) => (
                     <div

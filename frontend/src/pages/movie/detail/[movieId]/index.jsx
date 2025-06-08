@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import {useContext, useEffect, useState} from "react";
 import {MovieDetailBanner} from "@/components/moive/detail/MovieDetailBanner.jsx";
 import {MovieDetailInfo} from "@/components/moive/detail/MovieDetailInfo.jsx";
 import MovieCredits from "@/components/moive/detail/MovieCredits.jsx";
@@ -11,6 +11,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner.jsx";
 import {ReviewModal} from "@/components/ui/ReviewModal.jsx";
 import {getReviewsByMovie} from "@/pages/api/reviewApi.js";
 import AllCommentsModal from "@/components/moive/detail/AllCommentsModal.jsx";
+import {AuthContext} from "@/context/AuthContext.jsx";
 export default function MovieDetailPage() {
     const { movieId } = useParams();
     const [movie, setMovie] = useState(null);
@@ -18,6 +19,9 @@ export default function MovieDetailPage() {
     const [modalOpen, setModalOpen] = useState(false);      // 리뷰 작성 모달
     const [showAllModal, setShowAllModal] = useState(false); // 전체 코멘트 모달
     const [loading, setLoading] = useState(true);
+    const [userScore, setUserScore] = useState(null); // 내 점수
+
+    const { user } = useContext(AuthContext);
 
     const fetchComments = async () => {
         try {
@@ -29,7 +33,7 @@ export default function MovieDetailPage() {
     };
 
     useEffect(() => {
-        if (!movieId) return;
+        if (!movieId || !user) return;
         const fetchData = async () => {
             setLoading(true);
             try {
@@ -39,6 +43,12 @@ export default function MovieDetailPage() {
                 ]);
                 setMovie(movieDetail);
                 setComments(commentData);
+
+                const myReview = commentData.find(r => r.authorUserId === user.userId);
+                if (myReview?.score != null) {
+                    setUserScore(myReview.score);
+                }
+
             } catch (error) {
                 console.error(error);
             } finally {
@@ -46,7 +56,7 @@ export default function MovieDetailPage() {
             }
         };
         fetchData();
-    }, [movieId]);
+    }, [movieId, user]);
 
     if (loading) return  <LoadingSpinner />;
 
@@ -56,7 +66,7 @@ export default function MovieDetailPage() {
         <>
         <div className="mb-10">
             <MovieDetailBanner movie={movie} />
-            <MovieDetailInfo movie={movie} setModalOpen={setModalOpen} />
+            <MovieDetailInfo movie={movie} setModalOpen={setModalOpen} userScore={userScore} />
             <MovieCredits casts={movie.cast} directors={Array(movie.director)}  />
             <MovieComments
                 comments={comments}

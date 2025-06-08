@@ -1,6 +1,6 @@
 import RatingBar from "@/components/moive/detail/RatingBar.jsx";
 
-export const MovieDetailInfo = ({ movie }) => {
+export const MovieDetailInfo = ({ movie, userScore = 0.0 }) => {
   return (
       <div className="bg-gray-50 pt-12 pb-16">
         <div className="container flex flex-col-reverse sm:flex-row m-auto">
@@ -14,7 +14,7 @@ export const MovieDetailInfo = ({ movie }) => {
           <div className="w-full flex ml-0 sm:ml-8 flex-1 flex-col">
             <section className="w-full mb-2">
               {/* movieId 전달 추가 */}
-              <RatingBar voteAverage={movie.voteAverage} movieId={movie.id} isFavorite={movie.favorite}/>
+              <RatingBar voteAverage={movie.voteAverage} movieId={movie.id} isFavorite={movie.favorite} userScore={userScore} />
             </section>
 
             <section className="w-full mb-10 sm:mb-0 border-t border-t-gray-300">
