@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 
 export default function MyPage() {
     const navigate = useNavigate();
@@ -73,13 +73,13 @@ export default function MyPage() {
                         };
                     } catch {
                         // 실패 시 DTO 그대로
-                        return { ...fav, genres: [], releaseDate: "", country: "", runtime: 0 };
+                        return {...fav, genres: [], releaseDate: "", country: "", runtime: 0};
                     }
                 })
             );
 
 
-            setProfile({ ...dto, recentReviews: withMovie, favoriteMovies: favoritesWithMovieData, });
+            setProfile({...dto, recentReviews: withMovie, favoriteMovies: favoritesWithMovieData,});
         } catch (e) {
             setError(e.message);
         } finally {
@@ -167,17 +167,20 @@ export default function MyPage() {
                                             className="w-full h-full object-cover rounded"
                                         />
                                     ) : (
-                                        <div className="w-full h-full bg-gray-200 rounded" />
+                                        <div className="w-full h-full bg-gray-200 rounded"/>
                                     )}
                                 </div>
                                 <div className="flex-1 p-4">
                                     <h4 className="text-xl font-semibold text-left">
                                         {review.title}
                                     </h4>
-                                    <div className="flex items-center mt-2">
-                                        <span className="text-lg">★</span>
-                                        <span className="ml-1 text-lg">{review.score}/5</span>
-                                    </div>
+                                    {(review.score != null&&review.score>=1) && (
+                                        <div className="flex items-center mt-2">
+                                            <span className="text-lg">★</span>
+                                            <span className="ml-1 text-lg">{review.score}/5</span>
+                                        </div>
+                                    )}
+
                                     <p className="mt-2 text-base leading-relaxed text-left">
                                         {review.content}
                                     </p>
@@ -224,7 +227,7 @@ export default function MyPage() {
                                                 className="w-full h-full object-cover rounded"
                                             />
                                         ) : (
-                                            <div className="w-full h-full bg-gray-200 rounded" />
+                                            <div className="w-full h-full bg-gray-200 rounded"/>
                                         )}
                                     </div>
                                     <div className="flex-1 p-4">
