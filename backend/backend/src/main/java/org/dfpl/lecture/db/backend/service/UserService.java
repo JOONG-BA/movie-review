@@ -24,12 +24,10 @@ public class UserService {
     private final FavoriteRepository favoriteRepository;
 
     public MyPageDTO getMyPage(User user) {
-        // (1) 리뷰 개수 + 최신 3개 가져오기
         List<Review> all = reviewRepository.findAllByUser(user);
         long reviewCount = all.size();
         List<MyReviewDTO> recent = all.stream()
                 .sorted(Comparator.comparing(Review::getCreatedAt).reversed())
-                .limit(3)
                 .map(r -> new MyReviewDTO(
                         r.getId(),
                         r.getMovie().getId(),
@@ -38,13 +36,11 @@ public class UserService {
                 ))
                 .collect(Collectors.toList());
 
-        // (2) 즐겨찾기 목록 가져오기 → favoriteRepository를 통해 DB 조회
         List<Favorite> allFavs = favoriteRepository.findAllByUser(user);
         long favoriteCount = allFavs.size();
 
         List<FavoriteMovieDTO> top3Favs = allFavs.stream()
                 .sorted(Comparator.comparing(Favorite::getCreatedAt).reversed())
-                .limit(3)
                 .map(fav -> new FavoriteMovieDTO(
                         fav.getMovie().getId(),
                         fav.getMovie().getTitle(),
