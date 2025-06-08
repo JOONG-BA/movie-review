@@ -96,6 +96,7 @@ public class ReviewService {
                         // null-safe 처리 추가
                         r.getScore() != null ? r.getScore() : 0.0,
                         r.getContent(),
+                        r.getUser().getId(),
                         r.getUser().getNickname()
                 ))
                 .toList();
@@ -174,6 +175,7 @@ public class ReviewService {
                         r.getMovie().getTitle(),
                         r.getScore(),
                         r.getContent(),
+                        r.getUser().getId(),
                         r.getUser().getNickname()
                 ))
                 .toList();
