@@ -16,9 +16,9 @@ export default function MovieComments({ comments = [], setModalOpen, setShowAllM
                 )}
             </div>
 
-            {comments.length > 0 ? (
+            {comments.filter(comment => comment && comment.content !== null && comment.content !== undefined).length > 0 ? (
                 <div className="flex sm:grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 overflow-hidden ">
-                    {comments.map(comment => (
+                    {comments.filter(comment => comment && comment.content !== null && comment.content !== undefined).map(comment => (
                         <CommentCard key={comment.id} comment={comment} maxLength={MAX_LENGTH} />
                     ))}
                 </div>
