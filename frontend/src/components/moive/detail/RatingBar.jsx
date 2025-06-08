@@ -32,30 +32,54 @@ export default function RatingBar({ voteAverage, movieId = null }) {
     }, [isLoggedIn, movieId]);
 
     const handleRate = async (rating) => {
-        if (!isLoggedIn) {
-            return alert("로그인이 필요합니다!");
-        }
+        if (!isLoggedIn) return alert("로그인이 필요합니다!");
         const token = localStorage.getItem("token");
-        if (!token) {
-            return alert("토큰이 없습니다. 다시 로그인 해 주세요.");
-        }
+        if (!token) return alert("토큰이 없습니다. 다시 로그인 해 주세요.");
 
-        const res = await fetch("/api/rate", {
+        const payload = { movieId, score: rating };
+
+        const res = await fetch("/api/reviews", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`,
             },
-            body: JSON.stringify({ movieId, rating }),
+            body: JSON.stringify(payload),
         });
 
         if (!res.ok) {
             console.error("평점 전송에 실패했습니다.", await res.text());
             return;
         }
-
         const data = await res.json();
-        setAverage(data.average);
+        if (data.average != null) setAverage(data.average);
+    };
+
+    const handleSubmitReview = async (content) => {
+        if (!isLoggedIn) return alert("로그인이 필요합니다!");
+        const token = localStorage.getItem("token");
+        if (!token) return alert("토큰이 없습니다. 다시 로그인 해 주세요.");
+
+        const payload = { movieId, content };
+
+        const res = await fetch("/api/reviews", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+            console.error("리뷰 전송에 실패했습니다.", await res.text());
+            return;
+        }
+        const data = await res.json();
+
+        if (data.average  != null) setAverage(data.average);
+        if (data.content  != null) {
+        }
     };
 
     const handleLike = async () => {
