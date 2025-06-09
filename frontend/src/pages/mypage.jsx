@@ -125,7 +125,7 @@ export default function MyPage() {
                                 className="w-full h-full object-cover"
                             />
                         </div>
-                        <div className="text-center sm:text-left">
+                        <div className="text-center pt-4 sm:text-left">
                             <h2 className="text-lg sm:text-xl font-semibold">
                                 {profile.nickname}
                             </h2>
@@ -204,7 +204,7 @@ export default function MyPage() {
 
                 {/* 즐겨찾는 영화 */}
                 <div className="bg-white rounded-lg shadow p-6">
-                    <h3 className="text-base sm:text-lg font-semibold mb-4">
+                    <h3 className="text-2xl font-bold mb-4 text-left">
                         즐겨찾는 영화
                     </h3>
                     {displayedFavorites.length === 0 ? (
