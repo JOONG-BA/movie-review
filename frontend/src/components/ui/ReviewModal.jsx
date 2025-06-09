@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button.jsx";
 import {createReview} from "@/pages/api/reviewApi.js";
 
-export function ReviewModal({ open, setOpen, movieId = null, onSubmitSuccess }) {
+export function ReviewModal({ open, setOpen, movieId = null, fetchComments }) {
   const [content, setContent] = useState("");
 
   const handleSubmit = async () => {
@@ -22,7 +22,7 @@ export function ReviewModal({ open, setOpen, movieId = null, onSubmitSuccess }) 
       alert("리뷰가 등록되었습니다!");
       setOpen(false);
       setContent("");
-      onSubmitSuccess?.(); // 코멘트 새로고침
+      fetchComments?.(); // 코멘트 새로고침
     } catch (err) {
       console.error(err);
       alert("리뷰 등록 중 오류가 발생했습니다.");

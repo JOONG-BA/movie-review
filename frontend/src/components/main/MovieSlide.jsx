@@ -5,7 +5,7 @@ import {IoMdStar} from "react-icons/io";
 import {Link} from "react-router-dom";
 import {NextArrow} from "@/components/slider/PrevArrow.jsx";
 import {PrevArrow} from "@/components/slider/NextArrow.jsx";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {getPopularByGenreFromApi, getPopularFromApi} from "@/pages/api/movieApi.js";
 import LoadingSpinner from "@/components/ui/LoadingSpinner.jsx";
 
@@ -13,7 +13,11 @@ export const MovieSlide = ({ title, genre }) => {
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const effectRan = useRef(false);
     useEffect(() => {
+        if (effectRan.current) return;
+        effectRan.current = true;
+
         setLoading(true);
 
         const fetchMovies = genre === null

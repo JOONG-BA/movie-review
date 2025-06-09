@@ -44,7 +44,7 @@ export default function CastAndCrew({ casts = [], directors = [] }) {
                     <div key={idx}>
                         <div className="flex flex-col gap-4 pr-4">
                             {chunk.map((person) => (
-                                <div key={person.id} className="flex gap-4 items-center">
+                                <div key={person.name} className="flex gap-4 items-center">
                                     {person.profileImageUrl ? (
                                         <img
                                             src={person.profileImageUrl}
