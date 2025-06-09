@@ -14,6 +14,8 @@ import AllCommentsModal from "@/components/moive/detail/AllCommentsModal.jsx";
 import {AuthContext} from "@/context/AuthContext.jsx";
 
 export default function MovieDetailPage() {
+    const { user } = useContext(AuthContext);
+
     const { movieId } = useParams();
     const [movie, setMovie] = useState(null);
     const [comments, setComments] = useState([]);
@@ -22,7 +24,6 @@ export default function MovieDetailPage() {
     const [loading, setLoading] = useState(true);
     const [userScore, setUserScore] = useState(null); // 내 점수
 
-    const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const fetchComments = async () => {
@@ -34,10 +35,8 @@ export default function MovieDetailPage() {
         }
     };
 
-    const effectRan = useRef(false);
+
     useEffect(() => {
-        if (effectRan.current) return;
-        effectRan.current = true;
         if (!movieId) return;
 
         const fetchData = async () => {

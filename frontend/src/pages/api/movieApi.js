@@ -1,4 +1,5 @@
 import axios from 'axios';
+import {authFetch} from "@/context/AuthContext.jsx";
 
 const API_BASE = '/api/movies';
 
@@ -8,8 +9,9 @@ const API_BASE = '/api/movies';
  * @returns {Promise<MovieDetailDTO>}
  */
 export const getMovieDetail = async (id) => {
-    const res = await axios.get(`${API_BASE}/detail/${id}`);
-    return res.data;
+    const res = await authFetch(`${API_BASE}/detail/${id}`);
+    if (!res.ok) throw new Error("Failed to fetch movie detail");
+    return res.json();
 };
 
 /**
