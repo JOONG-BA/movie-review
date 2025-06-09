@@ -14,7 +14,7 @@ export default function AllCommentsModal({ open, setOpen, comments = [], movieTi
 
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
                     {comments.length > 0 ? (
-                        comments.map((comment) => (
+                        comments.filter(comment => comment && comment.content !== null && comment.content !== undefined).map((comment) => (
                             <CommentCard key={comment.id} comment={comment} />
                         ))
                     ) : (
