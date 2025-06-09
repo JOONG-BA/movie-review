@@ -6,7 +6,7 @@ export default function NotFound({
         emoji = "🔍"
     }) {
     return (
-        <div className="flex flex-col items-center justify-center text-center pb-10 h-full px-4 text-gray-600 h-dvh">
+        <div className="flex flex-col items-center justify-center text-center pb-10 px-4 text-gray-600 h-dvh">
             <div className="text-3xl mb-4">{emoji}</div>
             <h2 className="text-xl font-bold mb-2">{title}</h2>
             <p className="text-sm text-gray-400">{description}</p>
