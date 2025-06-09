@@ -3,14 +3,16 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import Pages from "vite-plugin-pages"
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export default defineConfig({
-  plugins: [react(),
+  plugins: [
+    react(),
     Pages({
       dirs: "src/pages",
-      extensions: ["jsx"],
+      extensions: ["jsx"]
     })
   ],
   resolve: {
@@ -21,7 +23,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080', // Spring Boot 서버 주소
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
       },

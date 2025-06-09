@@ -1,5 +1,5 @@
-import { useParams } from "react-router-dom";
-import {useContext, useEffect, useState} from "react";
+import {useNavigate, useParams} from "react-router-dom";
+import {useContext, useEffect, useRef, useState} from "react";
 import {MovieDetailBanner} from "@/components/moive/detail/MovieDetailBanner.jsx";
 import {MovieDetailInfo} from "@/components/moive/detail/MovieDetailInfo.jsx";
 import MovieCredits from "@/components/moive/detail/MovieCredits.jsx";
@@ -12,6 +12,7 @@ import {ReviewModal} from "@/components/ui/ReviewModal.jsx";
 import {getReviewsByMovie} from "@/pages/api/reviewApi.js";
 import AllCommentsModal from "@/components/moive/detail/AllCommentsModal.jsx";
 import {AuthContext} from "@/context/AuthContext.jsx";
+
 export default function MovieDetailPage() {
     const { movieId } = useParams();
     const [movie, setMovie] = useState(null);
@@ -22,6 +23,7 @@ export default function MovieDetailPage() {
     const [userScore, setUserScore] = useState(null); // 내 점수
 
     const { user } = useContext(AuthContext);
+    const navigate = useNavigate();
 
     const fetchComments = async () => {
         try {
@@ -32,31 +34,50 @@ export default function MovieDetailPage() {
         }
     };
 
+    const effectRan = useRef(false);
     useEffect(() => {
-        if (!movieId || !user) return;
+        if (effectRan.current) return;
+        effectRan.current = true;
+        if (!movieId) return;
+
         const fetchData = async () => {
             setLoading(true);
+
+            // 영화 상세 정보
             try {
-                const [movieDetail, commentData] = await Promise.all([
-                    getMovieDetail(movieId),
-                    getReviewsByMovie(movieId),
-                ]);
-                setMovie(movieDetail);
+                const detail = await getMovieDetail(movieId);
+                setMovie(detail);
+            } catch (error) {
+                console.error("영화 정보 불러오기 실패", error);
+                if (error.status === 403) {
+                    alert("존재하지 않는 영화입니다.");
+                    navigate("/404", { replace: true });
+                }
+                setMovie(null);
+            } finally {
+                setLoading(false); // 영화 정보 기준으로 로딩 종료
+            }
+
+            // 리뷰 (영화 실패와 별도로 처리)
+            try {
+                const commentData = await getReviewsByMovie(movieId);
                 setComments(commentData);
 
-                const myReview = commentData.find(r => r.authorUserId === user.userId);
-                if (myReview?.score != null) {
-                    setUserScore(myReview.score);
+                if (user) {
+                    const myReview = commentData.find(r => r.authorUserId === user.userId);
+                    if (myReview?.score != null) {
+                        setUserScore(myReview.score);
+                    }
                 }
-
             } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
+                console.error("리뷰 불러오기 실패", error);
+                setComments(null);
             }
         };
+
         fetchData();
-    }, [movieId, user]);
+    }, [movieId, user, navigate]);
+
 
     if (loading) return  <LoadingSpinner />;
 
@@ -82,7 +103,7 @@ export default function MovieDetailPage() {
             open={modalOpen}
             setOpen={setModalOpen}
             movieId={movieId}
-            onSubmitSuccess={fetchComments}
+            fetchComments={fetchComments}
         />
 
         <AllCommentsModal
