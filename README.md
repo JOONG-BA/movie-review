@@ -170,8 +170,12 @@ chore: .gitignore 파일 정리
 아래는 일반 사용자를 위한 기능 안내입니다.
 
 ### 0. 초기 세팅
+ - GitHub 저장소를 로컬에 클론합니다 (예: master 브랜치 기준):
+  ```
+   git clone -b master https://github.com/JOONG-BA/movie-review.git .
+  ```
+ - IDE(IntelliJ 추천)로 프로젝트 디렉토리를 엽니다.
 
- - master 브랜치를 사용자 데스크탑의 IDE(Intellij 추천) 에 클론합니다.
  * 프로젝트 루트에서 Gradle Wrapper가 설정되어 있는지 확인하세요.
    * Gradle 빌드 및 실행:
 
