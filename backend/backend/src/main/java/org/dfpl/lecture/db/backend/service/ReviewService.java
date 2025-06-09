@@ -70,20 +70,16 @@ public class ReviewService {
 
         Review savedReview = reviewRepository.save(review);
 
-        // 평균·카운트 재계산
-        List<Review> scored = reviewRepository.findAllByMovie_Id(movie.getId());
-        double sum = scored.stream()
-                .filter(r -> r.getScore() != null)
-                .mapToDouble(Review::getScore)
-                .sum();
-        long count = scored.stream()
-                .filter(r -> r.getScore() != null)
-                .count();
-        double avg = count > 0 ? sum / count : 0.0;
-
-        movie.setVoteAverage(avg);
-        movie.setVoteCount((int) count);
-        movieRepository.save(movie);
+        if(req.getScore() != null){
+            Double oldAvg = movie.getVoteAverage() != null ? movie.getVoteAverage() : 0.0;
+            Integer oldCount = movie.getVoteCount()  != null ? movie.getVoteCount()  : 0;
+            Double halfOldAvg = oldAvg / 2.0;
+            double rawNewAvg = ((halfOldAvg * oldCount + req.getScore()) / (oldCount + 1)) * 2;
+            double roundedAvg = Math.round(rawNewAvg * 100) / 100.0;
+            movie.setVoteAverage(roundedAvg);
+            movie.setVoteCount(oldCount + 1);
+            movieRepository.save(movie);
+        }
 
         return savedReview;
     }
