@@ -4,7 +4,7 @@ import {FaRegStarHalf, FaStarHalf} from "react-icons/fa";
 
 export default function StarRatingInput({onRate, initial = 0}) {
     const [hovered, setHovered] = useState(null);
-    const [selected, setSelected] = useState(initial);
+    const [selected, setSelected] = useState(Math.max(initial, 0));
 
     useEffect(() => {
         if (initial != null && initial !== selected) {
