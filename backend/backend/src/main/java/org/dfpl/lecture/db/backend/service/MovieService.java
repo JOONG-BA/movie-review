@@ -1,6 +1,7 @@
 package org.dfpl.lecture.db.backend.service;
 
 import com.google.gson.*;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -321,6 +322,7 @@ public class MovieService {
         MovieDetailDTO dto = new MovieDetailDTO();
         dto.setId(movieId);
 
+
         // 1) 기본 정보 (/movie/{id}?language=ko-KR)
         JsonObject movieObj = fetchJson(TmdbApiUtil.withLanguage("/movie/" + movieId));
         dto.setTitle(movieObj.get("title").getAsString());
@@ -355,9 +357,11 @@ public class MovieService {
         if (!movieObj.get("runtime").isJsonNull()) {
             dto.setRuntime(movieObj.get("runtime").getAsInt());
         }
-
+        Double avgScore = movieRepository.findById(movieId)
+                .orElseThrow(() -> new EntityNotFoundException("영화 없음"))
+                .getVoteAverage();
         // TMDB 평점 + 투표 수
-        dto.setVoteAverage(movieObj.get("vote_average").getAsDouble() / 2.0);
+        dto.setVoteAverage(avgScore / 2.0);
         dto.setVoteCount(movieObj.get("vote_count").getAsInt());
 
         // 장르 리스트 (genres 배열에서 name만 추출)
