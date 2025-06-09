@@ -174,7 +174,7 @@ export default function MyPage() {
                                     <h4 className="text-xl font-semibold text-left">
                                         {review.title}
                                     </h4>
-                                    {(review.score != null&&review.score>=1) && (
+                                    {(review.score != null&&review.score>=0.5) && (
                                         <div className="flex items-center mt-2">
                                             <span className="text-lg">★</span>
                                             <span className="ml-1 text-lg">{review.score}/5</span>

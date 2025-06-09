@@ -56,7 +56,7 @@ public class ReviewService {
 
         if (hasScore) {
             double score = req.getScore();
-            if (score < 1 || score > 5) {
+            if (score < 0.5 || score > 5) {
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
                         "score는 1~5 사이여야 합니다."
@@ -117,10 +117,10 @@ public class ReviewService {
                     "score 또는 content 중 하나는 반드시 입력해야 합니다.");
         }
 
-        if (hasScore && (request.getScore() < 1 || request.getScore() > 5)) {
+        if (hasScore && (request.getScore() < 0.5 || request.getScore() > 5)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "score는 1~5 사이의 정수여야 합니다.");
+                    "score는 0.5~5 사이의 정수여야 합니다.");
         }
 
         Review review = Review.builder()
