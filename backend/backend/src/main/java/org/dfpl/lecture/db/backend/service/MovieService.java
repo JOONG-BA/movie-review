@@ -22,9 +22,12 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static java.lang.Math.round;
+
 @Service
 @RequiredArgsConstructor
-public class MovieService {
+public class
+MovieService {
 
     private final Gson gson = new Gson();
     private final MovieRepository movieRepository;
@@ -251,7 +254,7 @@ public class MovieService {
 
     private SearchResultDTO toSearchResultDto(MovieDB entity) {
         Double rawVote = entity.getVoteAverage();
-        double halfVote = (rawVote != null ? rawVote / 2.0 : 0.0);
+        double halfVote = (rawVote != null ? (round(rawVote * 100)/ 200.0) : 0.0);
         return new SearchResultDTO(
                 entity.getId(),
                 entity.getTitle(),
@@ -361,7 +364,7 @@ public class MovieService {
                 .orElseThrow(() -> new EntityNotFoundException("영화 없음"))
                 .getVoteAverage();
         // TMDB 평점 + 투표 수
-        dto.setVoteAverage(avgScore / 2.0);
+        dto.setVoteAverage((round(avgScore * 100) / 200.0   ));
         dto.setVoteCount(movieObj.get("vote_count").getAsInt());
 
         // 장르 리스트 (genres 배열에서 name만 추출)
