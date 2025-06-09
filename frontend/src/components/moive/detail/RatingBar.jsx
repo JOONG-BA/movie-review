@@ -6,30 +6,19 @@ import RatingActions from "./RatingActions";
 import { ReviewModal } from "@/components/ui/ReviewModal.jsx";
 import { AuthContext } from "@/context/AuthContext.jsx";
 
-export default function RatingBar({ voteAverage, movieId = null, userScore}) {
+export default function RatingBar({ voteAverage, movieId = null, isFavorite = null, userScore}) {
     // 1) 초기 average를 서버에서 받은 voteAverage로 설정
     const [average, setAverage] = useState(voteAverage); // 전체 평균
     // 2) 서버에 저장된 좋아요 여부를 불러와 초기화 (선택)
-    const [liked, setLiked] = useState(false);
+    const [liked, setLiked] = useState(isFavorite);
     const [modalOpen, setModalOpen] = useState(false);
 
     const { isLoggedIn } = useContext(AuthContext);
     // 페이지 로드 시, 내가 좋아요 누른 상태인지 확인
     useEffect(() => {
-
-        if (!isLoggedIn || movieId == null) return;
-
-        const token = localStorage.getItem("token");
-        Promise.all([
-            fetch("/api/users/me/favorites", {
-                headers: { "Authorization": `Bearer ${token}` }
-            }).then(res => res.ok ? res.json() : []),
-        ])
-            .then(([favorites]) => {
-                setLiked(favorites.some(f => f.movieId === movieId));
-            })
-            .catch(console.error);
-    }, [isLoggedIn, movieId]);
+        if(isFavorite)
+            setLiked(isFavorite);
+    }, [isFavorite]);
 
     const handleRate = async (rating) => {
         if (!isLoggedIn) return alert("로그인이 필요합니다!");
